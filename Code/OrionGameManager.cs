@@ -36,6 +36,10 @@ public class OrionGameManager : Component
 		player.UpdateClearance();
 		player.UpdatePlayerVisuals();
 
+		// Initialize inventory: Start with Slot 0 (Fists) for everyone
+		// This prevents the 'Update' exception by ensuring ActiveWeapon isn't null
+		player.EquipWeapon( 0 );
+
 		// Determine the target transform based on the role
 		Transform target = role switch
 		{
@@ -66,6 +70,8 @@ public class OrionGameManager : Component
 		player.Experience += 100f;
 		Log.Info( $"[REWARD] 100 Experience awarded. Total Experience: {player.Experience:F1}" );
 
+		player.EquipWeapon( 0 );
+
 		// 2. Re-enable the camera and force it back to standard view
 		var cam = player.Components.GetInChildren<CameraComponent>( true );
 		if ( cam.IsValid() )
@@ -73,8 +79,8 @@ public class OrionGameManager : Component
 			cam.Enabled = true;
 
 			// This uses the explicit constructor to avoid naming conflicts with 'Transform'
-			cam.Transform.LocalPosition = Vector3.Zero;
-			cam.Transform.LocalRotation = Rotation.Identity;
+			cam.LocalPosition = Vector3.Zero;
+			cam.LocalRotation = Rotation.Identity;
 
 			Log.Info( "[RESET] Camera local transform zeroed out." );
 		}

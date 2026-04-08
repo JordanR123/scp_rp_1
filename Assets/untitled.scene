@@ -394,7 +394,7 @@
           "Position": "0,0,0",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
-          "Tags": "",
+          "Tags": "scp173",
           "Enabled": true,
           "NetworkMode": 2,
           "NetworkFlags": 0,
@@ -1466,7 +1466,7 @@
       "__version": 2,
       "Flags": 0,
       "Name": "Player Controller",
-      "Position": "0,0,0",
+      "Position": "-0.6000481,625.2532,-0.001480103",
       "Rotation": "0,0,0,1",
       "Scale": "1,1,1",
       "Tags": "",
@@ -1557,10 +1557,10 @@
           "AngularDamping": 1,
           "EnableImpactDamage": true,
           "EnhancedCcd": false,
-          "Gravity": true,
+          "Gravity": false,
           "GravityScale": 1,
           "ImpactDamage": 0,
-          "LinearDamping": 0.1,
+          "LinearDamping": 10,
           "Locking": {
             "X": false,
             "Y": false,
@@ -1569,7 +1569,7 @@
             "Yaw": true,
             "Roll": true
           },
-          "MassCenterOverride": "0,0,36",
+          "MassCenterOverride": "0,0,0",
           "MassOverride": 500,
           "MinImpactDamageSpeed": 500,
           "MotionEnabled": true,
@@ -1662,7 +1662,7 @@
           "ClearanceLevel": 0,
           "CurrentRole": "DClass",
           "DClassBody": null,
-          "Experience": 0,
+          "Experience": 1185.9271,
           "FirstPersonArms": {
             "_type": "gameobject",
             "go": "ac3aa054-788c-49a2-b6be-bd2debe6010c"
@@ -1695,7 +1695,7 @@
             "go": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
             "component_type": "CameraComponent"
           },
-          "PlayerLevel": 1,
+          "PlayerLevel": 2,
           "RagdollPrefab": {
             "_type": "gameobject",
             "prefab": "defaultragdoll.prefab"
@@ -1712,7 +1712,7 @@
           "Position": "0,0,0",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
-          "Tags": "",
+          "Tags": "viewer",
           "Enabled": true,
           "NetworkMode": 2,
           "NetworkFlags": 0,
@@ -1819,7 +1819,7 @@
               "Center": "0,0,18",
               "ColliderFlags": 0,
               "Elasticity": null,
-              "Friction": 0,
+              "Friction": 81,
               "IsTrigger": false,
               "OnComponentDestroy": null,
               "OnComponentDisabled": null,
@@ -1845,8 +1845,8 @@
           "__version": 2,
           "Flags": 0,
           "Name": "Main Camera",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
+          "Position": "0,0,64",
+          "Rotation": "-0.000004745269,-0.001534348,-0.003092677,0.999994",
           "Scale": "1,1,1",
           "Tags": "",
           "Enabled": true,
@@ -1864,7 +1864,7 @@
               "BackgroundColor": "0.33333,0.46275,0.52157,1",
               "ClearFlags": "All",
               "EnablePostProcessing": true,
-              "FieldOfView": 60,
+              "FieldOfView": 90,
               "FovAxis": "Horizontal",
               "IsMainCamera": true,
               "OnComponentDestroy": null,
@@ -1877,13 +1877,13 @@
               "OrthographicHeight": 1204,
               "PostProcessAnchor": null,
               "Priority": 1,
-              "RenderExcludeTags": "",
+              "RenderExcludeTags": "viewer",
               "RenderTags": "",
               "RenderTexture": null,
               "TargetEye": "None",
               "Viewport": "0,0,1,1",
               "ZFar": 10000,
-              "ZNear": 1
+              "ZNear": 10
             }
           ],
           "Children": [
@@ -1931,7 +1931,16 @@
                   "__PrefabInstancePatch": {
                     "AddedObjects": [],
                     "RemovedObjects": [],
-                    "PropertyOverrides": [],
+                    "PropertyOverrides": [
+                      {
+                        "Target": {
+                          "Type": "GameObject",
+                          "IdValue": "ca9a87d4-b8cb-4014-be0d-123ec83515f2"
+                        },
+                        "Property": "Position",
+                        "Value": "1.72,0,0"
+                      }
+                    ],
                     "MovedObjects": []
                   },
                   "__PrefabIdToInstanceId": {
@@ -1985,7 +1994,16 @@
                   "__PrefabInstancePatch": {
                     "AddedObjects": [],
                     "RemovedObjects": [],
-                    "PropertyOverrides": [],
+                    "PropertyOverrides": [
+                      {
+                        "Target": {
+                          "Type": "GameObject",
+                          "IdValue": "9d63e20b-ea38-4360-bde9-1508c30751e2"
+                        },
+                        "Property": "Enabled",
+                        "Value": false
+                      }
+                    ],
                     "MovedObjects": []
                   },
                   "__PrefabIdToInstanceId": {
@@ -2362,6 +2380,39 @@
           "Children": []
         }
       ]
+    },
+    {
+      "__guid": "e7d683bb-fdaa-466e-b631-abcf0af9ec12",
+      "__version": 2,
+      "__Prefab": "roleselectpanel.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "880ddda3-f794-4700-a6e6-457eca9e7c85"
+            },
+            "Property": "NetworkMode",
+            "Value": 1
+          },
+          {
+            "Target": {
+              "Type": "Component",
+              "IdValue": "968558c4-ea45-436a-b548-ef557ca3a983"
+            },
+            "Property": "IsOpen",
+            "Value": false
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "880ddda3-f794-4700-a6e6-457eca9e7c85": "e7d683bb-fdaa-466e-b631-abcf0af9ec12",
+        "f5bc8ac0-7a0d-4845-96f9-889dd8fefc68": "1c989ec5-2c6a-47a5-8c02-e62d5dce8df9",
+        "968558c4-ea45-436a-b548-ef557ca3a983": "17b2aee5-9cea-4143-b37f-ef0ed797a460"
+      }
     }
   ],
   "SceneProperties": {
@@ -2385,7 +2436,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "f4b0ff7b-5739-41b1-ad27-621e241efb66"
+          "$blob": "2d4a6d0d-3460-43d8-86cc-d40bc2b7b4a4"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

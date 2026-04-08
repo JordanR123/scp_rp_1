@@ -24,8 +24,14 @@ public partial class OrionPlayerController : Component
 	[Property] public GameObject GuardBody { get; set; }
 	[Property] public GameObject ResearcherBody { get; set; }
 	[Property] public CameraComponent PlayerCamera { get; set; }
+	[Property] public GameObject FirstPersonArms { get; set; }
 
 	[Property, Group( "Death" )] public GameObject RagdollPrefab { get; set; }
+
+	//Weapon System
+	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
+		public OrionWeapon ActiveWeapon { get; set; }
+	public int CurrentSlot { get; set; } = 0;
 
 	public bool IsDead { get; set; } = false;
 	public float TimeSinceDeath { get; set; } = 0f;
@@ -42,48 +48,20 @@ public partial class OrionPlayerController : Component
 
 	public void UpdatePlayerVisuals()
 	{
-		// Turn all bodies off first
 		if ( DClassBody.IsValid() ) DClassBody.Enabled = false;
 		if ( GuardBody.IsValid() ) GuardBody.Enabled = false;
 		if ( ResearcherBody.IsValid() ) ResearcherBody.Enabled = false;
 
-		// Turn on the correct body for the current role
 		switch ( CurrentRole )
 		{
 			case PlayerRole.DClass:
-				if ( DClassBody.IsValid() )
-				{
-					DClassBody.Enabled = true;
-					Log.Info( "[CLOTHING] DClass body enabled." );
-				}
-				else
-				{
-					Log.Warning( "[CLOTHING] DClassBody is not assigned." );
-				}
+				if ( DClassBody.IsValid() ) DClassBody.Enabled = true;
 				break;
-
 			case PlayerRole.Guard:
-				if ( GuardBody.IsValid() )
-				{
-					GuardBody.Enabled = true;
-					Log.Info( "[CLOTHING] Guard body enabled." );
-				}
-				else
-				{
-					Log.Warning( "[CLOTHING] GuardBody is not assigned." );
-				}
+				if ( GuardBody.IsValid() ) GuardBody.Enabled = true;
 				break;
-
 			case PlayerRole.Researcher:
-				if ( ResearcherBody.IsValid() )
-				{
-					ResearcherBody.Enabled = true;
-					Log.Info( "[CLOTHING] Researcher body enabled." );
-				}
-				else
-				{
-					Log.Warning( "[CLOTHING] ResearcherBody is not assigned." );
-				}
+				if ( ResearcherBody.IsValid() ) ResearcherBody.Enabled = true;
 				break;
 		}
 	}
@@ -120,16 +98,78 @@ public partial class OrionPlayerController : Component
 		{
 			PlayerLevel = 2;
 			SaveGame();
-			Log.Info( "[PROGRESSION] Level 2 reached! Guard/Researcher roles unlocked." );
+			Log.Info( "[PROGRESSION] Level 2 reached!" );
 		}
 
 		if ( Health <= 0 ) Die();
 
-		if ( Input.Pressed( "use" ) )
+		if ( Input.Pressed( "use" ) ) HandleInteraction();
+
+		// Handle Weapon Logic
+		HandleWeaponInputs();
+
+	}
+
+
+	private void HandleWeaponInputs()
+{
+    // Slot Switching (Keys 1 and 2)
+    if ( Input.Pressed( "Slot1" ) ) EquipWeapon( 0 );
+    if ( Input.Pressed( "Slot2" ) ) EquipWeapon( 1 );
+
+    // Scroll Switching
+    if ( Input.MouseWheel.y > 0 ) EquipWeapon( (CurrentSlot + 1) % Inventory.Count );
+    if ( Input.MouseWheel.y < 0 ) EquipWeapon( (CurrentSlot - 1 + Inventory.Count) % Inventory.Count );
+
+    // Attack Logic for Facepunch Prefabs
+    if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() )
+    {
+        var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
+        if ( renderer.IsValid() )
+        {
+            // Triggers the animation (like b_attack) on the Facepunch prefab
+            renderer.Set( ActiveWeapon.AttackTrigger, true );
+        }
+    }
+}
+
+	public void EquipWeapon( int slotIndex )
+	{
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count ) return;
+
+		foreach ( var weapon in Inventory )
 		{
-			HandleInteraction();
+			if ( weapon.IsValid() ) weapon.SetVisible( false );
+		}
+
+		CurrentSlot = slotIndex;
+		ActiveWeapon = Inventory[slotIndex];
+
+		if ( ActiveWeapon.IsValid() )
+		{
+			// 1. Parent the weapon container to the camera
+			ActiveWeapon.GameObject.Parent = PlayerCamera.GameObject;
+			ActiveWeapon.SetVisible( true );
+
+			// 2. Reset the container's local transform
+			ActiveWeapon.LocalPosition = Vector3.Zero;
+			ActiveWeapon.LocalRotation = Rotation.Identity;
+
+			// 3. FORCE the actual model mesh to be in front of the camera
+			if ( ActiveWeapon.ViewModel.IsValid() )
+			{
+				ActiveWeapon.ViewModel.LocalPosition = ActiveWeapon.ViewOffset;
+				ActiveWeapon.ViewModel.LocalRotation = Rotation.Identity;
+			}
+
+			Log.Info( $"[EQUIP] {ActiveWeapon.WeaponName} model forced into view." );
 		}
 	}
+
+
+
+
+
 
 	public void Die()
 	{
@@ -240,4 +280,6 @@ public partial class OrionPlayerController : Component
 	{
 		SaveGame();
 	}
+
+
 }
