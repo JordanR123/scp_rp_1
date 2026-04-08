@@ -1464,653 +1464,256 @@
     {
       "__guid": "236cf7d9-f885-4c1b-a4ac-b3c9f8a21ddc",
       "__version": 2,
-      "Flags": 0,
-      "Name": "Player Controller",
-      "Position": "0,0,0",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [
-        {
-          "__type": "Sandbox.PlayerController",
-          "__guid": "bfa0d922-9778-47d6-97b7-10e1ef962b05",
-          "__enabled": true,
-          "Flags": 0,
-          "AccelerationTime": 0,
-          "AimStrengthBody": 1,
-          "AimStrengthEyes": 1,
-          "AimStrengthHead": 1,
-          "AirFriction": 0.1,
-          "AltMoveButton": "run",
-          "Body": {
-            "_type": "component",
-            "component_id": "28c37fbc-7989-4f57-8d5f-0e6b25454353",
-            "go": "236cf7d9-f885-4c1b-a4ac-b3c9f8a21ddc",
-            "component_type": "Rigidbody"
-          },
-          "BodyCollisionTags": null,
-          "BodyHeight": 72,
-          "BodyMass": 500,
-          "BodyRadius": 16,
-          "BrakePower": 1,
-          "CameraOffset": "256,0,12",
-          "ColliderObject": {
-            "_type": "gameobject",
-            "go": "8881c09d-3bee-423f-99ff-78af34415488"
-          },
-          "DeaccelerationTime": 0,
-          "DuckedHeight": 36,
-          "DuckedSpeed": 70,
-          "EnableFootstepSounds": true,
-          "EnablePressing": true,
-          "EyeDistanceFromTop": 8,
-          "FootstepMixer": {
-            "Name": "unknown",
-            "Id": "00000000-0000-0000-0000-000000000000"
-          },
-          "FootstepVolume": 1,
-          "HideBodyInFirstPerson": true,
-          "JumpSpeed": 300,
-          "LookSensitivity": 1,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "PitchClamp": 90,
-          "ReachLength": 130,
-          "Renderer": {
-            "_type": "component",
-            "component_id": "66794187-80e6-4a9e-9768-2fbfcfe33642",
-            "go": "2ccf256f-10a6-4709-a68a-a6180ea0ee89",
-            "component_type": "SkinnedModelRenderer"
-          },
-          "RotateWithGround": true,
-          "RotationAngleLimit": 45,
-          "RotationSpeed": 1,
-          "RunByDefault": false,
-          "RunSpeed": 320,
-          "ShowColliderComponents": false,
-          "ShowRigidbodyComponent": false,
-          "ThirdPerson": false,
-          "ToggleCameraModeButton": "view",
-          "UseAnimatorControls": true,
-          "UseButton": "use",
-          "UseCameraControls": true,
-          "UseFovFromPreferences": true,
-          "UseInputControls": true,
-          "UseLookControls": true,
-          "WalkSpeed": 110
-        },
-        {
-          "__type": "Sandbox.Rigidbody",
-          "__guid": "28c37fbc-7989-4f57-8d5f-0e6b25454353",
-          "__enabled": true,
-          "Flags": 1,
-          "AngularDamping": 1,
-          "EnableImpactDamage": true,
-          "EnhancedCcd": false,
-          "Gravity": true,
-          "GravityScale": 1,
-          "ImpactDamage": 0,
-          "LinearDamping": 0.1,
-          "Locking": {
-            "X": false,
-            "Y": false,
-            "Z": false,
-            "Pitch": true,
-            "Yaw": true,
-            "Roll": true
-          },
-          "MassCenterOverride": "0,0,36",
-          "MassOverride": 500,
-          "MinImpactDamageSpeed": 500,
-          "MotionEnabled": true,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "OverrideMassCenter": true,
-          "RigidbodyFlags": "DisableCollisionSounds",
-          "StartAsleep": false
-        },
-        {
-          "__type": "Sandbox.Movement.MoveModeWalk",
-          "__guid": "941ab4a0-d608-4b39-b492-60e914994f45",
-          "__enabled": true,
-          "Flags": 0,
-          "GroundAngle": 45,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Priority": 0,
-          "StepDownHeight": 18,
-          "StepUpHeight": 18
-        },
-        {
-          "__type": "Sandbox.Movement.MoveModeSwim",
-          "__guid": "1a77ff05-0c15-4ead-9cfc-9d605a3079f0",
-          "__enabled": true,
-          "Flags": 0,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Priority": 10,
-          "SwimLevel": 0.7
-        },
-        {
-          "__type": "Sandbox.Movement.MoveModeLadder",
-          "__guid": "be367cfb-197c-4447-9fce-4789ecda0503",
-          "__enabled": true,
-          "Flags": 0,
-          "ClimbableTags": "ladder",
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "Priority": 5,
-          "Speed": 1
-        },
-        {
-          "__type": "Sandbox.Dresser",
-          "__guid": "b7b1085d-908c-4914-9687-1eef1151a52c",
-          "__enabled": true,
-          "Flags": 0,
-          "ApplyHeightScale": true,
-          "BodyTarget": {
-            "_type": "component",
-            "component_id": "66794187-80e6-4a9e-9768-2fbfcfe33642",
-            "go": "2ccf256f-10a6-4709-a68a-a6180ea0ee89",
-            "component_type": "SkinnedModelRenderer"
-          },
-          "Clothing": [],
-          "ManualAge": 0.5,
-          "ManualHeight": 0.5,
-          "ManualTint": 0.5,
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "RemoveUnownedItems": true,
-          "Source": "OwnerConnection",
-          "WorkshopItems": []
-        },
-        {
-          "__type": "OrionPlayerController",
-          "__guid": "5e64364f-bf9a-49b2-998e-b64f895ebc70",
-          "__enabled": true,
-          "Flags": 0,
-          "ClearanceLevel": 0,
-          "CurrentRole": "Guard",
-          "DClassBody": null,
-          "Experience": 1200,
-          "FirstPersonArms": {
-            "_type": "gameobject",
-            "go": "ac3aa054-788c-49a2-b6be-bd2debe6010c"
-          },
-          "GuardBody": null,
-          "Health": 100,
-          "Inventory": [
-            {
-              "_type": "component",
-              "component_id": "0fd02e46-aec4-4cdc-93fb-5370788579f5",
-              "go": "ac3aa054-788c-49a2-b6be-bd2debe6010c",
-              "component_type": "OrionWeapon"
+      "__Prefab": "player controller.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [
+          {
+            "Id": {
+              "Type": "GameObject",
+              "IdValue": "419c089a-30ba-4529-b826-ae5aa3810cae"
             },
-            {
-              "_type": "component",
-              "component_id": "816d42d5-edbe-4b93-aed4-470840853b3a",
-              "go": "41d9eadb-3d63-4fa2-a9e7-26fd80b37ba9",
-              "component_type": "OrionWeapon"
-            }
-          ],
-          "OnComponentDestroy": null,
-          "OnComponentDisabled": null,
-          "OnComponentEnabled": null,
-          "OnComponentFixedUpdate": null,
-          "OnComponentStart": null,
-          "OnComponentUpdate": null,
-          "PlayerCamera": {
-            "_type": "component",
-            "component_id": "636cdb0b-4ae5-4e43-8e19-5c7941a92e3a",
-            "go": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
-            "component_type": "CameraComponent"
-          },
-          "PlayerLevel": 2,
-          "RagdollPrefab": {
-            "_type": "gameobject",
-            "prefab": "defaultragdoll.prefab"
-          },
-          "ResearcherBody": null
-        }
-      ],
-      "Children": [
-        {
-          "__guid": "2ccf256f-10a6-4709-a68a-a6180ea0ee89",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "Body",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "66794187-80e6-4a9e-9768-2fbfcfe33642",
-              "__enabled": true,
-              "Flags": 0,
-              "AnimationGraph": null,
-              "BodyGroups": 341,
-              "BoneMergeTarget": null,
-              "CreateAttachments": false,
-              "CreateBoneObjects": false,
-              "LodOverride": null,
-              "MaterialGroup": "default",
-              "MaterialOverride": null,
-              "Materials": null,
-              "Model": "models/citizen/citizen.vmdl",
-              "Morphs": {},
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Parameters": {
-                "bools": {},
-                "ints": {},
-                "floats": {},
-                "vectors": {},
-                "rotations": {}
-              },
-              "PlaybackRate": 1,
-              "RenderOptions": {
-                "GameLayer": true,
-                "OverlayLayer": false,
-                "BloomLayer": false,
-                "AfterUILayer": false
-              },
-              "RenderType": "On",
-              "Sequence": {
-                "Name": null,
-                "Looping": true,
-                "Blending": false
-              },
-              "Tint": "1,1,1,1",
-              "UseAnimGraph": true
-            }
-          ],
-          "Children": []
-        },
-        {
-          "__guid": "8881c09d-3bee-423f-99ff-78af34415488",
-          "__version": 2,
-          "Flags": 1,
-          "Name": "Colliders",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "Sandbox.CapsuleCollider",
-              "__guid": "5641f16f-e61f-4166-8df3-2dea8f538eef",
-              "__enabled": true,
-              "Flags": 1,
-              "ColliderFlags": 0,
-              "Elasticity": null,
-              "End": "0,0,36",
-              "Friction": 0,
-              "IsTrigger": false,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "OnObjectTriggerEnter": null,
-              "OnObjectTriggerExit": null,
-              "OnTriggerEnter": null,
-              "OnTriggerExit": null,
-              "Radius": 11.313708,
-              "RollingResistance": null,
-              "Start": "0,0,60.68629",
-              "Static": false,
-              "Surface": null,
-              "SurfaceVelocity": "0,0,0"
+            "Parent": {
+              "Type": "GameObject",
+              "IdValue": "1ea53737-1d2a-43c4-837d-fff01bad3ed6"
             },
-            {
-              "__type": "Sandbox.BoxCollider",
-              "__guid": "d6501f7a-f3c9-453e-a6c6-0767b865f707",
-              "__enabled": true,
-              "Flags": 1,
-              "Center": "0,0,18",
-              "ColliderFlags": 0,
-              "Elasticity": null,
-              "Friction": 0,
-              "IsTrigger": false,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "OnObjectTriggerEnter": null,
-              "OnObjectTriggerExit": null,
-              "OnTriggerEnter": null,
-              "OnTriggerExit": null,
-              "RollingResistance": null,
-              "Scale": "16,16,36",
-              "Static": false,
-              "Surface": null,
-              "SurfaceVelocity": "0,0,0"
-            }
-          ],
-          "Children": []
-        },
-        {
-          "__guid": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "Main Camera",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "Sandbox.CameraComponent",
-              "__guid": "636cdb0b-4ae5-4e43-8e19-5c7941a92e3a",
-              "__enabled": true,
-              "Flags": 0,
-              "BackgroundColor": "0.33333,0.46275,0.52157,1",
-              "ClearFlags": "All",
-              "EnablePostProcessing": true,
-              "FieldOfView": 60,
-              "FovAxis": "Horizontal",
-              "IsMainCamera": true,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Orthographic": false,
-              "OrthographicHeight": 1204,
-              "PostProcessAnchor": null,
-              "Priority": 1,
-              "RenderExcludeTags": "",
-              "RenderTags": "",
-              "RenderTexture": null,
-              "TargetEye": "None",
-              "Viewport": "0,0,1,1",
-              "ZFar": 10000,
-              "ZNear": 1
-            }
-          ],
-          "Children": [
-            {
-              "__guid": "ac3aa054-788c-49a2-b6be-bd2debe6010c",
+            "PreviousElement": null,
+            "ContainerProperty": "Children",
+            "IsContainerArray": true,
+            "Data": {
+              "__guid": "419c089a-30ba-4529-b826-ae5aa3810cae",
               "__version": 2,
-              "Flags": 0,
-              "Name": "Weapon_Fists",
-              "Position": "0,0,0",
-              "Rotation": "0,0,0,1",
-              "Scale": "1,1,1",
-              "Tags": "",
-              "Enabled": true,
-              "NetworkMode": 2,
-              "NetworkFlags": 0,
-              "NetworkOrphaned": 0,
-              "NetworkTransmit": true,
-              "OwnerTransfer": 1,
-              "Components": [
-                {
-                  "__type": "OrionWeapon",
-                  "__guid": "0fd02e46-aec4-4cdc-93fb-5370788579f5",
-                  "__enabled": true,
-                  "Flags": 0,
-                  "AttackTrigger": "b_attack",
-                  "OnComponentDestroy": null,
-                  "OnComponentDisabled": null,
-                  "OnComponentEnabled": null,
-                  "OnComponentFixedUpdate": null,
-                  "OnComponentStart": null,
-                  "OnComponentUpdate": null,
-                  "ViewModel": {
-                    "_type": "gameobject",
-                    "go": "419c089a-30ba-4529-b826-ae5aa3810cae"
-                  },
-                  "ViewOffset": "0,0,0",
-                  "WeaponName": "Fists"
-                }
-              ],
-              "Children": [
-                {
-                  "__guid": "419c089a-30ba-4529-b826-ae5aa3810cae",
-                  "__version": 2,
-                  "__Prefab": "weapons/v_first_person_arms_human.prefab",
-                  "__PrefabInstancePatch": {
-                    "AddedObjects": [],
-                    "RemovedObjects": [],
-                    "PropertyOverrides": [
-                      {
-                        "Target": {
-                          "Type": "Component",
-                          "IdValue": "58d8f876-a755-4aac-9bfa-08c301bda2b1"
-                        },
-                        "Property": "RenderType",
-                        "Value": "Off"
-                      }
-                    ],
-                    "MovedObjects": []
-                  },
-                  "__PrefabIdToInstanceId": {
-                    "ca9a87d4-b8cb-4014-be0d-123ec83515f2": "419c089a-30ba-4529-b826-ae5aa3810cae",
-                    "58d8f876-a755-4aac-9bfa-08c301bda2b1": "305ef35f-12a3-4851-a71d-5e29b24ae6b9"
+              "__Prefab": "weapons/v_first_person_arms_human.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "58d8f876-a755-4aac-9bfa-08c301bda2b1"
+                    },
+                    "Property": "RenderType",
+                    "Value": "Off"
                   }
-                }
-              ]
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "ca9a87d4-b8cb-4014-be0d-123ec83515f2": "419c089a-30ba-4529-b826-ae5aa3810cae",
+                "58d8f876-a755-4aac-9bfa-08c301bda2b1": "305ef35f-12a3-4851-a71d-5e29b24ae6b9"
+              }
+            }
+          },
+          {
+            "Id": {
+              "Type": "GameObject",
+              "IdValue": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7"
             },
-            {
-              "__guid": "41d9eadb-3d63-4fa2-a9e7-26fd80b37ba9",
+            "Parent": {
+              "Type": "GameObject",
+              "IdValue": "08f9cbe9-2708-42d3-886e-bb9c18160f9c"
+            },
+            "PreviousElement": null,
+            "ContainerProperty": "Children",
+            "IsContainerArray": true,
+            "Data": {
+              "__guid": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7",
               "__version": 2,
-              "Flags": 0,
-              "Name": "M4A1",
-              "Position": "0,0,0",
-              "Rotation": "0,0,0,1",
-              "Scale": "1,1,1",
-              "Tags": "",
-              "Enabled": true,
-              "NetworkMode": 2,
-              "NetworkFlags": 0,
-              "NetworkOrphaned": 0,
-              "NetworkTransmit": true,
-              "OwnerTransfer": 1,
-              "Components": [
-                {
-                  "__type": "OrionWeapon",
-                  "__guid": "816d42d5-edbe-4b93-aed4-470840853b3a",
-                  "__enabled": true,
-                  "Flags": 0,
-                  "AttackTrigger": "b_attack",
-                  "OnComponentDestroy": null,
-                  "OnComponentDisabled": null,
-                  "OnComponentEnabled": null,
-                  "OnComponentFixedUpdate": null,
-                  "OnComponentStart": null,
-                  "OnComponentUpdate": null,
-                  "ViewModel": {
-                    "_type": "gameobject",
-                    "go": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7"
+              "__Prefab": "weapons/v_m4a1.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [
+                  {
+                    "Id": {
+                      "Type": "GameObject",
+                      "IdValue": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93"
+                    },
+                    "Parent": {
+                      "Type": "GameObject",
+                      "IdValue": "9d63e20b-ea38-4360-bde9-1508c30751e2"
+                    },
+                    "PreviousElement": null,
+                    "ContainerProperty": "Children",
+                    "IsContainerArray": true,
+                    "Data": {
+                      "__guid": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93",
+                      "__version": 2,
+                      "Flags": 0,
+                      "Name": "v_first_person_arms_human",
+                      "Position": "173.5039,-82.66501,27.18389",
+                      "Rotation": "0,0,0,1",
+                      "Scale": "1,1,1",
+                      "Tags": "",
+                      "Enabled": true,
+                      "NetworkMode": 2,
+                      "NetworkFlags": 0,
+                      "NetworkOrphaned": 0,
+                      "NetworkTransmit": true,
+                      "OwnerTransfer": 1,
+                      "Components": [],
+                      "Children": []
+                    }
                   },
-                  "ViewOffset": "0,0,0",
-                  "WeaponName": "Weapon"
-                }
-              ],
-              "Children": [
-                {
-                  "__guid": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7",
-                  "__version": 2,
-                  "__Prefab": "weapons/v_m4a1.prefab",
-                  "__PrefabInstancePatch": {
-                    "AddedObjects": [
-                      {
-                        "Id": {
-                          "Type": "GameObject",
-                          "IdValue": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93"
-                        },
-                        "Parent": {
-                          "Type": "GameObject",
-                          "IdValue": "9d63e20b-ea38-4360-bde9-1508c30751e2"
-                        },
-                        "PreviousElement": null,
-                        "ContainerProperty": "Children",
-                        "IsContainerArray": true,
-                        "Data": {
-                          "__guid": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93",
-                          "__version": 2,
-                          "Flags": 0,
-                          "Name": "v_first_person_arms_human",
-                          "Position": "173.5039,-82.66501,27.18389",
-                          "Rotation": "0,0,0,1",
-                          "Scale": "1,1,1",
-                          "Tags": "",
-                          "Enabled": true,
-                          "NetworkMode": 2,
-                          "NetworkFlags": 0,
-                          "NetworkOrphaned": 0,
-                          "NetworkTransmit": true,
-                          "OwnerTransfer": 1,
-                          "Components": [],
-                          "Children": []
-                        }
+                  {
+                    "Id": {
+                      "Type": "Component",
+                      "IdValue": "3e966f1d-9867-4ced-b390-83584187a6e6"
+                    },
+                    "Parent": {
+                      "Type": "GameObject",
+                      "IdValue": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93"
+                    },
+                    "PreviousElement": null,
+                    "ContainerProperty": "Components",
+                    "IsContainerArray": true,
+                    "Data": {
+                      "__type": "Sandbox.SkinnedModelRenderer",
+                      "__guid": "3e966f1d-9867-4ced-b390-83584187a6e6",
+                      "__enabled": true,
+                      "Flags": 0,
+                      "AnimationGraph": null,
+                      "BodyGroups": 21,
+                      "BoneMergeTarget": {
+                        "_type": "component",
+                        "component_id": "67d5b36d-d317-47d3-9880-b7ec8549fb83",
+                        "go": "9d63e20b-ea38-4360-bde9-1508c30751e2",
+                        "component_type": "SkinnedModelRenderer"
                       },
-                      {
-                        "Id": {
-                          "Type": "Component",
-                          "IdValue": "3e966f1d-9867-4ced-b390-83584187a6e6"
-                        },
-                        "Parent": {
-                          "Type": "GameObject",
-                          "IdValue": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93"
-                        },
-                        "PreviousElement": null,
-                        "ContainerProperty": "Components",
-                        "IsContainerArray": true,
-                        "Data": {
-                          "__type": "Sandbox.SkinnedModelRenderer",
-                          "__guid": "3e966f1d-9867-4ced-b390-83584187a6e6",
-                          "__enabled": true,
-                          "Flags": 0,
-                          "AnimationGraph": null,
-                          "BodyGroups": 21,
-                          "BoneMergeTarget": {
-                            "_type": "component",
-                            "component_id": "67d5b36d-d317-47d3-9880-b7ec8549fb83",
-                            "go": "9d63e20b-ea38-4360-bde9-1508c30751e2",
-                            "component_type": "SkinnedModelRenderer"
-                          },
-                          "CreateAttachments": false,
-                          "CreateBoneObjects": false,
-                          "LodOverride": null,
-                          "MaterialGroup": null,
-                          "MaterialOverride": null,
-                          "Materials": null,
-                          "Model": "models/first_person/v_first_person_arms_human.vmdl",
-                          "Morphs": {},
-                          "OnComponentDestroy": null,
-                          "OnComponentDisabled": null,
-                          "OnComponentEnabled": null,
-                          "OnComponentFixedUpdate": null,
-                          "OnComponentStart": null,
-                          "OnComponentUpdate": null,
-                          "Parameters": {
-                            "bools": {},
-                            "ints": {},
-                            "floats": {},
-                            "vectors": {},
-                            "rotations": {}
-                          },
-                          "PlaybackRate": 1,
-                          "RenderOptions": {
-                            "GameLayer": true,
-                            "OverlayLayer": false,
-                            "BloomLayer": false,
-                            "AfterUILayer": false
-                          },
-                          "RenderType": "On",
-                          "Sequence": {
-                            "Name": null,
-                            "Looping": true,
-                            "Blending": false
-                          },
-                          "Tint": "1,1,1,1",
-                          "UseAnimGraph": true
-                        }
-                      }
-                    ],
-                    "RemovedObjects": [],
-                    "PropertyOverrides": [
-                      {
-                        "Target": {
-                          "Type": "Component",
-                          "IdValue": "67d5b36d-d317-47d3-9880-b7ec8549fb83"
-                        },
-                        "Property": "RenderType",
-                        "Value": "Off"
-                      }
-                    ],
-                    "MovedObjects": []
-                  },
-                  "__PrefabIdToInstanceId": {
-                    "9d63e20b-ea38-4360-bde9-1508c30751e2": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7",
-                    "67d5b36d-d317-47d3-9880-b7ec8549fb83": "cf7b13fd-0bf8-4a34-99dd-e4879b52f7dd"
+                      "CreateAttachments": false,
+                      "CreateBoneObjects": false,
+                      "LodOverride": null,
+                      "MaterialGroup": null,
+                      "MaterialOverride": null,
+                      "Materials": null,
+                      "Model": "models/first_person/v_first_person_arms_human.vmdl",
+                      "Morphs": {},
+                      "OnComponentDestroy": null,
+                      "OnComponentDisabled": null,
+                      "OnComponentEnabled": null,
+                      "OnComponentFixedUpdate": null,
+                      "OnComponentStart": null,
+                      "OnComponentUpdate": null,
+                      "Parameters": {
+                        "bools": {},
+                        "ints": {},
+                        "floats": {},
+                        "vectors": {},
+                        "rotations": {}
+                      },
+                      "PlaybackRate": 1,
+                      "RenderOptions": {
+                        "GameLayer": true,
+                        "OverlayLayer": false,
+                        "BloomLayer": false,
+                        "AfterUILayer": false
+                      },
+                      "RenderType": "On",
+                      "Sequence": {
+                        "Name": null,
+                        "Looping": true,
+                        "Blending": false
+                      },
+                      "Tint": "1,1,1,1",
+                      "UseAnimGraph": true
+                    }
                   }
-                }
-              ]
+                ],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "67d5b36d-d317-47d3-9880-b7ec8549fb83"
+                    },
+                    "Property": "RenderType",
+                    "Value": "Off"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "9d63e20b-ea38-4360-bde9-1508c30751e2": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7",
+                "67d5b36d-d317-47d3-9880-b7ec8549fb83": "cf7b13fd-0bf8-4a34-99dd-e4879b52f7dd"
+              }
             }
-          ]
-        }
-      ]
+          }
+        ],
+        "RemovedObjects": [
+          {
+            "Id": {
+              "Type": "GameObject",
+              "IdValue": "e2cc651d-4408-4811-bf82-188519630f60"
+            }
+          },
+          {
+            "Id": {
+              "Type": "Component",
+              "IdValue": "8f526064-6ea0-4ee9-ad0f-d56cf9ce497d"
+            }
+          },
+          {
+            "Id": {
+              "Type": "GameObject",
+              "IdValue": "48843790-c7ae-4fb4-b0ee-d9da1a5d2a44"
+            }
+          },
+          {
+            "Id": {
+              "Type": "Component",
+              "IdValue": "a0651b49-7f54-437e-a85b-67bff2c64819"
+            }
+          },
+          {
+            "Id": {
+              "Type": "GameObject",
+              "IdValue": "58be1414-37f5-445b-a8f3-018933ba4390"
+            }
+          },
+          {
+            "Id": {
+              "Type": "Component",
+              "IdValue": "0cd9ad31-8cbc-4ca7-a17e-32e2d42f614a"
+            }
+          }
+        ],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "4a9bfda7-1f81-48f1-84e2-344be1f2dbcb"
+            },
+            "Property": "Name",
+            "Value": "Player Controller"
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "4a9bfda7-1f81-48f1-84e2-344be1f2dbcb": "236cf7d9-f885-4c1b-a4ac-b3c9f8a21ddc",
+        "dd73f097-f8c8-445f-861a-aec201873820": "bfa0d922-9778-47d6-97b7-10e1ef962b05",
+        "edcd5837-22df-4597-945d-a5474954b0fc": "28c37fbc-7989-4f57-8d5f-0e6b25454353",
+        "ec9ee4e1-0fee-408c-b42f-2074ad9b5902": "941ab4a0-d608-4b39-b492-60e914994f45",
+        "035a02b1-17e4-49f3-801f-45dc43fb0693": "1a77ff05-0c15-4ead-9cfc-9d605a3079f0",
+        "5a6af374-aecf-4853-8812-c8b8ab442bd2": "be367cfb-197c-4447-9fce-4789ecda0503",
+        "fed0f13e-fc68-4730-b14b-84d310edcf1f": "b7b1085d-908c-4914-9687-1eef1151a52c",
+        "42f29c0c-4682-46e4-9a8b-39d8a2d1b94b": "5e64364f-bf9a-49b2-998e-b64f895ebc70",
+        "5820999e-bf8f-4e81-bc0e-1f8375af395f": "2ccf256f-10a6-4709-a68a-a6180ea0ee89",
+        "e43ce1ef-2973-4e9d-a92a-74cf3a5c58ca": "66794187-80e6-4a9e-9768-2fbfcfe33642",
+        "c3175f63-0960-41ce-ac81-9b450b548643": "8881c09d-3bee-423f-99ff-78af34415488",
+        "161c2286-caf8-44a4-9aa3-4b95864b8fc2": "5641f16f-e61f-4166-8df3-2dea8f538eef",
+        "d412d6e3-f0b5-4578-823c-3e3979cc17c2": "d6501f7a-f3c9-453e-a6c6-0767b865f707",
+        "b58e9769-5f81-4f17-9d4f-06baf89bb999": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
+        "8f518a1e-96ca-4bff-9fb4-8788614813d7": "636cdb0b-4ae5-4e43-8e19-5c7941a92e3a",
+        "1ea53737-1d2a-43c4-837d-fff01bad3ed6": "ac3aa054-788c-49a2-b6be-bd2debe6010c",
+        "3eea0aa1-d027-4f8c-a175-85def888c62f": "0fd02e46-aec4-4cdc-93fb-5370788579f5",
+        "e2cc651d-4408-4811-bf82-188519630f60": "419c089a-30ba-4529-b826-ae5aa3810cae",
+        "8f526064-6ea0-4ee9-ad0f-d56cf9ce497d": "305ef35f-12a3-4851-a71d-5e29b24ae6b9",
+        "08f9cbe9-2708-42d3-886e-bb9c18160f9c": "41d9eadb-3d63-4fa2-a9e7-26fd80b37ba9",
+        "d65e23b4-a138-4156-9ce3-1d081e697514": "816d42d5-edbe-4b93-aed4-470840853b3a",
+        "48843790-c7ae-4fb4-b0ee-d9da1a5d2a44": "13f20b47-2306-40a6-a5c7-cb8bf9573ee7",
+        "58be1414-37f5-445b-a8f3-018933ba4390": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93",
+        "0cd9ad31-8cbc-4ca7-a17e-32e2d42f614a": "3e966f1d-9867-4ced-b390-83584187a6e6",
+        "a0651b49-7f54-437e-a85b-67bff2c64819": "cf7b13fd-0bf8-4a34-99dd-e4879b52f7dd"
+      }
     },
     {
       "__guid": "26bddc1f-a92b-4d39-9bb0-63939ee883ac",
@@ -2473,6 +2076,47 @@
             }
           ],
           "Children": []
+        },
+        {
+          "__guid": "b3ff1f18-4406-492b-94fe-9ebc843c550d",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Network Manager",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "OrionNetworkManager",
+              "__guid": "1d891534-c8b5-4baf-94da-4b2fa31d083d",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "PlayerPrefab": {
+                "_type": "gameobject",
+                "prefab": "player controller.prefab"
+              },
+              "SpawnPoints": [
+                {
+                  "_type": "gameobject",
+                  "go": "94f6ce78-89f9-4644-8989-0dd4e6e6da70"
+                }
+              ]
+            }
+          ],
+          "Children": []
         }
       ]
     }
@@ -2496,13 +2140,13 @@
       "CustomBounds": false
     },
     "GameObjectSystems": {
-      "Sandbox.Clutter.ClutterGridSystem": {
-        "Storage": {
-          "$blob": "218ba6af-3dd5-4f4a-88ae-25494b17922a"
-        }
-      },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
         "DisableClientRecording": false
+      },
+      "Sandbox.Clutter.ClutterGridSystem": {
+        "Storage": {
+          "$blob": "429889cd-5472-4c48-b5b1-9dc7bca582ec"
+        }
       }
     }
   },
