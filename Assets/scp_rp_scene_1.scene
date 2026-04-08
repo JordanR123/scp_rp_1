@@ -1931,7 +1931,16 @@
                   "__PrefabInstancePatch": {
                     "AddedObjects": [],
                     "RemovedObjects": [],
-                    "PropertyOverrides": [],
+                    "PropertyOverrides": [
+                      {
+                        "Target": {
+                          "Type": "Component",
+                          "IdValue": "58d8f876-a755-4aac-9bfa-08c301bda2b1"
+                        },
+                        "Property": "RenderType",
+                        "Value": "Off"
+                      }
+                    ],
                     "MovedObjects": []
                   },
                   "__PrefabIdToInstanceId": {
@@ -1985,7 +1994,16 @@
                   "__PrefabInstancePatch": {
                     "AddedObjects": [],
                     "RemovedObjects": [],
-                    "PropertyOverrides": [],
+                    "PropertyOverrides": [
+                      {
+                        "Target": {
+                          "Type": "Component",
+                          "IdValue": "67d5b36d-d317-47d3-9880-b7ec8549fb83"
+                        },
+                        "Property": "RenderType",
+                        "Value": "Off"
+                      }
+                    ],
                     "MovedObjects": []
                   },
                   "__PrefabIdToInstanceId": {
@@ -2068,137 +2086,6 @@
           "NetworkTransmit": true,
           "OwnerTransfer": 1,
           "Components": [],
-          "Children": []
-        }
-      ]
-    },
-    {
-      "__guid": "c8cdbea2-5506-4781-82d7-8d2607509ee2",
-      "__version": 2,
-      "Flags": 0,
-      "Name": "Game Logic",
-      "Position": "634.2518,297.8318,289.4844",
-      "Rotation": "0,0,0,1",
-      "Scale": "1,1,1",
-      "Tags": "",
-      "Enabled": true,
-      "NetworkMode": 2,
-      "NetworkFlags": 0,
-      "NetworkOrphaned": 0,
-      "NetworkTransmit": true,
-      "OwnerTransfer": 1,
-      "Components": [],
-      "Children": [
-        {
-          "__guid": "e4ed77a1-35c3-4a4d-bf02-9134c8cd7124",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "Game Manager",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "OrionGameManager",
-              "__guid": "835c16b5-abde-49a5-9aaf-d088bd02d175",
-              "__enabled": true,
-              "Flags": 0,
-              "DBlockSpawn": {
-                "_type": "gameobject",
-                "go": "e9c09515-d775-4b2b-9d66-18f075f16f12"
-              },
-              "GuardSpawn": {
-                "_type": "gameobject",
-                "go": "5bd616c9-9f33-4f52-9444-2a2b7d1728c3"
-              },
-              "HudObject": {
-                "_type": "gameobject",
-                "go": "cf454955-0c8f-4b2a-9cc5-db71f7476938"
-              },
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "RoleSelectPrefab": {
-                "_type": "gameobject",
-                "prefab": "roleselectpanel.prefab"
-              },
-              "SurfaceSpawn": {
-                "_type": "gameobject",
-                "go": "94f6ce78-89f9-4644-8989-0dd4e6e6da70"
-              }
-            }
-          ],
-          "Children": []
-        },
-        {
-          "__guid": "cf454955-0c8f-4b2a-9cc5-db71f7476938",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "HUD",
-          "Position": "0,0,0",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "Sandbox.ScreenPanel",
-              "__guid": "c7838bc9-1f0c-40e0-b005-d1e2e9d8ae45",
-              "__enabled": true,
-              "Flags": 0,
-              "AutoScreenScale": true,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Opacity": 1,
-              "Scale": 2.8703704,
-              "ScaleStrategy": "ConsistentHeight",
-              "TargetCamera": null,
-              "ZIndex": 100
-            },
-            {
-              "__type": "Sandbox.UI.OrionHUD",
-              "__guid": "fa32ba17-802d-402f-87af-5f2ad5c0de9f",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
-            },
-            {
-              "__type": "OrionHUDState",
-              "__guid": "24db4984-8b09-4d25-b5b7-3798a7372a7f",
-              "__enabled": true,
-              "Flags": 0,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null
-            }
-          ],
           "Children": []
         }
       ]
@@ -2362,6 +2249,137 @@
           "Children": []
         }
       ]
+    },
+    {
+      "__guid": "c8cdbea2-5506-4781-82d7-8d2607509ee2",
+      "__version": 2,
+      "Flags": 0,
+      "Name": "Game Logic",
+      "Position": "634.2518,297.8318,289.4844",
+      "Rotation": "0,0,0,1",
+      "Scale": "1,1,1",
+      "Tags": "",
+      "Enabled": true,
+      "NetworkMode": 2,
+      "NetworkFlags": 0,
+      "NetworkOrphaned": 0,
+      "NetworkTransmit": true,
+      "OwnerTransfer": 1,
+      "Components": [],
+      "Children": [
+        {
+          "__guid": "e4ed77a1-35c3-4a4d-bf02-9134c8cd7124",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Game Manager",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "OrionGameManager",
+              "__guid": "835c16b5-abde-49a5-9aaf-d088bd02d175",
+              "__enabled": true,
+              "Flags": 0,
+              "DBlockSpawn": {
+                "_type": "gameobject",
+                "go": "e9c09515-d775-4b2b-9d66-18f075f16f12"
+              },
+              "GuardSpawn": {
+                "_type": "gameobject",
+                "go": "5bd616c9-9f33-4f52-9444-2a2b7d1728c3"
+              },
+              "HudObject": {
+                "_type": "gameobject",
+                "go": "cf454955-0c8f-4b2a-9cc5-db71f7476938"
+              },
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RoleSelectPrefab": {
+                "_type": "gameobject",
+                "prefab": "roleselectpanel.prefab"
+              },
+              "SurfaceSpawn": {
+                "_type": "gameobject",
+                "go": "94f6ce78-89f9-4644-8989-0dd4e6e6da70"
+              }
+            }
+          ],
+          "Children": []
+        },
+        {
+          "__guid": "cf454955-0c8f-4b2a-9cc5-db71f7476938",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "HUD",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ScreenPanel",
+              "__guid": "c7838bc9-1f0c-40e0-b005-d1e2e9d8ae45",
+              "__enabled": true,
+              "Flags": 0,
+              "AutoScreenScale": true,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "Opacity": 1,
+              "Scale": 1,
+              "ScaleStrategy": "ConsistentHeight",
+              "TargetCamera": null,
+              "ZIndex": 100
+            },
+            {
+              "__type": "Sandbox.UI.OrionHUD",
+              "__guid": "fa32ba17-802d-402f-87af-5f2ad5c0de9f",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
+            },
+            {
+              "__type": "OrionHUDState",
+              "__guid": "24db4984-8b09-4d25-b5b7-3798a7372a7f",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
+            }
+          ],
+          "Children": []
+        }
+      ]
     }
   ],
   "SceneProperties": {
@@ -2385,7 +2403,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "98f89dfd-a052-4b19-9d9f-8e28c86f3940"
+          "$blob": "0159adf1-6dd3-434a-b0ea-f090da705f85"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
@@ -2399,7 +2417,6 @@
   "__references": [
     "facepunch.corrugated_wall_a_128#169125",
     "facepunch.iron_fence_128#108382",
-    "facepunch.v_first_person_arms_human#142949",
     "facepunch.wooden_door_01d#143453",
     "hueycan.scpunityscp173v1#1436"
   ],

@@ -6,57 +6,67 @@
 
 <root style="pointer-events: @(IsDead ? "all" : "none")">
     <div class="hud-root @(IsDead ? "is-dead" : "")">
-        
-        <div class="header-left">
-            <div class="identity-block">
-                <label class="username">@LocalName</label>
-                <div class="role-tag @RoleLower">
-                    <label>@Role</label>
-                </div>
-            </div>
-            <div class="clearance-tag">
-                <label>CLEARANCE LEVEL @Clearance</label>
-            </div>
-        </div>
 
-        <div class="header-right">
-            <div class="clearance-box">
-                <label class="label">PROGRESSION</label>
-                <label class="value">LEVEL @Level</label>
+        <div class="top-bar">
+            <div class="player-card">
+                <div class="player-main">
+                    <label class="player-name">@LocalName</label>
 
-                @if ( Level < 2 )
-                {
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: @(LevelProgress)%"></div>
+                    <div class="badge-row">
+                        <div class="role-badge @RoleLower">
+                            <label>@RoleLabel</label>
+                        </div>
+
+                        <div class="clearance-badge">
+                            <label class="badge-title">CLEARANCE</label>
+                            <label class="badge-value">LVL @Clearance</label>
+                        </div>
                     </div>
-                }
+                </div>
+            </div>
+
+            <div class="progress-card">
+                <label class="eyebrow">PROGRESSION</label>
+                <label class="level-value">LEVEL @Level</label>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: @(LevelProgress)%"></div>
+                </div>
             </div>
         </div>
 
-        <div class="footer-left">
-            <div class="vitals-group">
-                <div class="bar-track">
-                    <div class="bar-fill health-color" style="width: @(Health)%"></div>
+        <div class="bottom-bar">
+            <div class="health-card">
+                <div class="health-top">
+                    <label class="eyebrow">VITAL SIGNS</label>
+                    <label class="health-value">@Health%</label>
                 </div>
-                <div class="vitals-data">
-                    <label class="label">VITAL SIGNS</label>
-                    <label class="value">@Health%</label>
+
+                <div class="bar-track health-track">
+                    <div class="bar-fill health-fill" style="width: @(Health)%"></div>
                 </div>
             </div>
         </div>
+
+        @if ( ShowDenied )
+        {
+            <div class="access-denied-popup">
+                <label class="denied-title">ACCESS DENIED</label>
+                <label class="denied-sub">INSUFFICIENT CLEARANCE</label>
+            </div>
+        }
 
         @if ( IsDead )
         {
-            var p = GetPlayer(true); // Get the dead player for the timer
+            var p = GetPlayer(true);
             var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
 
             <div class="death-overlay">
                 <label class="death-title">TERMINATED</label>
-                <label class="death-sub">Subject designation: @LocalName</label>
-                
+                <label class="death-sub">SUBJECT: @LocalName</label>
+
                 @if ( timeLeft > 0 )
                 {
-                    <label class="death-sub">Respawning available in @timeLeft...</label>
+                    <label class="death-sub">RESPAWN AVAILABLE IN @timeLeft</label>
                 }
                 else
                 {
@@ -70,45 +80,41 @@
 </root>
 
 @code {
-    /// <summary>
-    /// Finds the player. By default, it looks for a LIVING player.
-    /// If includeDead is true, it finds the first valid player regardless of state.
-    /// </summary>
-    private OrionPlayerController GetPlayer(bool includeDead = false) 
+    private OrionPlayerController GetPlayer(bool includeDead = false)
     {
         var allPlayers = Scene.GetAllComponents<OrionPlayerController>().ToList();
-        
-        if (includeDead)
+
+        if ( includeDead )
             return allPlayers.FirstOrDefault(x => x.IsValid);
 
-        // Filter for the living one to prevent the black screen sticking during respawn
         return allPlayers.FirstOrDefault(x => x.IsValid && !x.IsDead);
     }
 
     private OrionHUDState GetHUDState() => Scene.GetAllComponents<OrionHUDState>().FirstOrDefault();
 
     bool IsDead => GetPlayer() == null && GetPlayer(true)?.IsDead == true;
-    
+    bool ShowDenied => GetHUDState().IsValid() && GetHUDState().ShowDenied;
+
     string LocalName => Connection.Local?.DisplayName?.ToUpper() ?? "PLAYER";
     int Health => GetPlayer(true).IsValid() ? (int)GetPlayer(true).Health : 100;
     int Level => GetPlayer(true)?.PlayerLevel ?? 1;
     int Clearance => GetPlayer(true)?.ClearanceLevel ?? 0;
     string Role => GetPlayer(true)?.CurrentRole.ToString() ?? "UNASSIGNED";
-    string RoleLower => Role.ToLower();
+    string RoleLower => Role.Replace(" ", "").ToLower();
+    string RoleLabel => Role.Replace("Class", " CLASS").ToUpper();
 
     float LevelProgress
     {
         get
         {
             var p = GetPlayer(true);
-            if ( p == null || p.PlayerLevel >= 2 ) return 100f;
-            return (p.Experience / 600f) * 100f;
+            if ( p == null ) return 0f;
+            return Math.Clamp((p.Experience / 600f) * 100f, 0f, 100f);
         }
     }
 
     protected override void OnUpdate()
     {
-        // Re-trigger UI update
         StateHasChanged();
 
         var state = GetHUDState();

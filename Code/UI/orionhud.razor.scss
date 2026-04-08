@@ -1,10 +1,9 @@
-.root {
+﻿.root {
     position: absolute;
     top: 0px;
     left: 0px;
     right: 0px;
     bottom: 0px;
-    display: flex;
     pointer-events: none;
     font-family: Arial;
     color: white;
@@ -18,306 +17,284 @@
     bottom: 0px;
 }
 
-.header-left,
-.header-right,
-.footer-left {
+.top-bar {
     position: absolute;
+    top: 18px;
+    left: 18px;
+    right: 18px;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
 }
 
-.header-left {
-    top: 32px;
-    left: 32px;
+.bottom-bar {
+    position: absolute;
+    left: 18px;
+    bottom: 18px;
 }
 
-.header-right {
-    top: 32px;
-    right: 32px;
-    align-items: flex-end;
+.player-card,
+.progress-card,
+.health-card,
+.access-denied-popup,
+.death-overlay {
+    background-color: rgba(7, 14, 22, 0.88);
+    border: 1px solid rgba(130, 155, 185, 0.18);
+    border-radius: 18px;
+    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.03);
 }
 
-.footer-left {
-    bottom: 32px;
-    left: 32px;
+.player-card {
+    min-width: 440px;
+    max-width: 620px;
+    padding: 14px 16px;
 }
 
-.identity-block,
-.clearance-box,
-.vitals-group {
-    background-color: #101820;
-    border: 1px solid #2a3440;
-    border-radius: 14px;
-    padding: 16px 18px;
-}
-
-.identity-block {
-    min-width: 280px;
-    border-left: 4px solid white;
-
-    .username {
-        font-size: 30px;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 8px;
-        padding: 0px 10px 0px 0px;
-    }
-}
-
-.role-tag {
+.player-main {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 6px 10px;
-    border-radius: 10px;
-    background-color: #1a2430;
-    border: 1px solid #344050;
+    gap: 14px;
+}
+
+.player-name {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: white;
+    /* 🔥 FIX */
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+}
+
+.badge-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    /* 🔥 IMPORTANT */
+    flex-shrink: 0;
+}
+
+.role-badge,
+.clearance-badge {
+    min-height: 56px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.role-badge {
+    min-width: 120px;
+    background-color: rgba(255, 255, 255, 0.04);
 
     label {
         font-size: 12px;
-        font-weight: bold;
+        font-weight: 800;
+        letter-spacing: 2px;
         text-transform: uppercase;
-        color: #c8d2dc;
+        color: white;
     }
 
     &.dclass {
-        background-color: #3a2a12;
-        border-color: #7a551c;
+        background-color: rgba(125, 78, 20, 0.28);
+        border-color: rgba(255, 177, 71, 0.42);
 
         label {
-            color: #ffb347;
+            color: #ffb95f;
         }
     }
 
     &.guard {
-        background-color: #16283c;
-        border-color: #2d5f8c;
+        background-color: rgba(28, 72, 124, 0.30);
+        border-color: rgba(95, 160, 235, 0.40);
 
         label {
-            color: #75b7ff;
+            color: #8fc8ff;
         }
     }
 
     &.researcher {
-        background-color: #183020;
-        border-color: #356b45;
+        background-color: rgba(28, 92, 64, 0.30);
+        border-color: rgba(108, 214, 164, 0.40);
 
         label {
-            color: #8dd89c;
+            color: #98e5bb;
+        }
+    }
+
+    &.unassigned {
+        label {
+            color: #d7dee8;
         }
     }
 }
 
-.clearance-box {
-    min-width: 220px;
-    text-align: right;
-    border-right: 4px solid white;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.clearance-badge {
+    min-width: 138px;
+    background-color: rgba(255, 255, 255, 0.05);
+    align-items: flex-start;
 
-    .label {
-        font-size: 12px;
-        color: #aeb8c2;
-        font-weight: bold;
+    .badge-title {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #9eabb8;
+        margin-bottom: 3px;
     }
 
-    .value {
-        font-size: 28px;
-        font-weight: bold;
+    .badge-value {
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
         color: white;
-    }
-
-    .progress-track {
-        width: 100%;
-        height: 6px;
-        border-radius: 3px;
-        background-color: #222c36;
-        overflow: hidden;
-        margin-top: 4px;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background-color: #ffffff;
-        border-radius: 3px;
     }
 }
 
-.vitals-group {
-    width: 320px;
+.progress-card {
+    width: 270px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #9eabb8;
+}
+
+.level-value {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: white;
+}
+
+.progress-track,
+.bar-track {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.10);
+}
+
+.progress-track {
+    height: 7px;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.92);
+}
+
+.health-card {
+    width: 300px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
 
-    .bar-track {
-        width: 100%;
-        height: 10px;
-        border-radius: 6px;
-        background-color: #222c36;
-        overflow: hidden;
-    }
+.health-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
 
-    .bar-fill {
-        height: 100%;
-        border-radius: 6px;
+.health-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: white;
+}
 
-        &.health-color {
-            background-color: #d94a4a;
-        }
-    }
+.health-track {
+    height: 12px;
+}
 
-    .vitals-data {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-
-        .label {
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #aeb8c2;
-        }
-
-        .percent {
-            font-size: 22px;
-            font-weight: bold;
-            color: white;
-        }
-    }
+.health-fill {
+    height: 100%;
+    border-radius: 999px;
+    background-color: #e24d4d;
 }
 
 .access-denied-popup {
     position: absolute;
-    top: 50%;
     left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
-    background-color: #1a0a0a;
-    border: 1px solid #8b0000;
-    border-left: 4px solid #d94a4a;
-    border-radius: 14px;
-    padding: 18px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    pointer-events: none;
-
-    .denied-title {
-        font-size: 26px;
-        font-weight: bold;
-        color: #d94a4a;
-        text-transform: uppercase;
-    }
-
-    .denied-sub {
-        font-size: 13px;
-        color: #c8a0a0;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
+    min-width: 320px;
+    padding: 16px 22px;
+    text-align: center;
+    border-color: rgba(255, 108, 108, 0.35);
+    background-color: rgba(42, 12, 17, 0.94);
 }
 
-.death-screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    // This turns the entire game world behind the UI to grayscale!
-    backdrop-filter: grayscale(100%);
-
-    .death-text {
-        font-size: 100px;
-        color: #d94a4a;
-        font-weight: bold;
-        text-shadow: 2px 2px 10px black;
-    }
-
-    .respawn-sub {
-        font-size: 24px;
-        color: #e0e0e0;
-        margin-top: 15px;
-        font-weight: bold;
-    }
+.denied-title {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #ff7373;
+    margin-bottom: 4px;
 }
 
-.hud-root.is-dead {
-    backdrop-filter: grayscale(100%) brightness(0.4);
-    pointer-events: all; /* Optional: capture mouse if needed */
+.denied-sub {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #dfb8b8;
 }
 
 .death-overlay {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    /* Or you can use: inset: 0px; */
-
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 320px;
+    padding: 20px 24px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    z-index: 999;
+    gap: 10px;
     pointer-events: all;
+}
 
-    .death-title {
-        font-size: 120px;
-        font-weight: 900;
-        color: #ff3b3b;
-        text-shadow: 0px 0px 20px black;
-        text-transform: uppercase;
-    }
+.death-title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #ff8a8a;
+}
 
-    .death-sub {
-        font-size: 32px;
-        color: white;
-        font-family: 'Courier New', Courier, monospace;
-        margin-top: 20px;
-
-        &.highlight {
-            color: #ffcc00;
-            animation: pulse 1s infinite;
-        }
-    }
+.death-sub {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #d7dee8;
+    text-transform: uppercase;
 }
 
 .respawn-button {
-    margin-top: 30px;
-    padding: 15px 40px;
-    background-color: #d94a4a;
-    border: 2px solid #ff3b3b;
-    border-radius: 8px;
+    margin-top: 4px;
+    padding: 9px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background-color: rgba(255, 255, 255, 0.06);
     color: white;
-    font-size: 24px;
-    font-weight: bold;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background-color: #ff3b3b;
-        transform: scale(1.1);
-        cursor: pointer;
-    }
-}
-
-@keyframes pulse {
-    0% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
-
-    100% {
-        opacity: 1;
-    }
+    font-size: 12px;
+    font-weight: 800;
 }
