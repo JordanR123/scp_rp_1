@@ -1,0 +1,79 @@
+@using Sandbox
+@using Sandbox.UI
+@using System.Linq
+@inherits PanelComponent
+
+<root>
+    @if ( IsOpen )
+    {
+        <div class="selection-overlay">
+            <div class="panel-window">
+                <div class="panel-header">
+                    <label class="panel-title">FACILITY ASSIGNMENT</label>
+                    <label class="panel-subtitle">PHASE 1 ACTIVE</label>
+                </div>
+
+                <div class="role-container">
+                    <button class="role-entry" @onclick="@(() => SelectRole(PlayerRole.DClass))">
+                        <div class="role-meta">
+                            <label class="role-name">D-CLASS PERSONNEL</label>
+                            <label class="role-description">Expendable subject. Baseline access.</label>
+                        </div>
+                        <label class="income-value">$2/min</label>
+                    </button>
+
+                    <button class="role-entry @(GetLevel() < 2 ? "is-locked" : "")" @onclick="@(() => SelectRole(PlayerRole.Guard))">
+                        <div class="role-meta">
+                            <label class="role-name">SECURITY GUARD</label>
+                            <label class="role-description">Manage D-Block. Level 2 Required.</label>
+                        </div>
+                        @if ( GetLevel() < 2 )
+                        {
+                            <label class="lock-text">LOCKED</label>
+                        }
+                        else
+                        {
+                            <label class="income-value">$10/min</label>
+                        }
+                    </button>
+
+                    <button class="role-entry @(GetLevel() < 2 ? "is-locked" : "")" @onclick="@(() => SelectRole(PlayerRole.Researcher))">
+                        <div class="role-meta">
+                            <label class="role-name">RESEARCHER</label>
+                            <label class="role-description">Conduct experiments. Level 2 Required.</label>
+                        </div>
+                        @if ( GetLevel() < 2 )
+                        {
+                            <label class="lock-text">LOCKED</label>
+                        }
+                        else
+                        {
+                            <label class="income-value">$15/min</label>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</root>
+
+@code {
+    [Property] public bool IsOpen { get; set; } = true;
+
+    int GetLevel()
+    {
+        return Game.ActiveScene.GetAllComponents<OrionPlayerController>().FirstOrDefault()?.PlayerLevel ?? 1;
+    }
+
+    void SelectRole(PlayerRole role)
+    {
+        if ( GetLevel() < 2 && role != PlayerRole.DClass )
+            return;
+
+        var manager = Game.ActiveScene.GetAllComponents<OrionGameManager>().FirstOrDefault();
+        manager?.SpawnPlayer( role );
+
+        IsOpen = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,123 @@
+root {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    font-family: Arial;
+}
+
+.selection-overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: #0b1016ee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 32px;
+    pointer-events: all;
+}
+
+.panel-window {
+    width: 760px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 28px;
+    background-color: #121922;
+    border: 1px solid #2a3440;
+    border-radius: 20px;
+}
+
+.panel-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 16px;
+    border-left: 4px solid white;
+
+    .panel-title {
+        font-size: 34px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .panel-subtitle {
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #97a3af;
+    }
+}
+
+.role-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.role-entry {
+    width: 100%;
+    min-height: 86px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    background-color: #18212b;
+    border: 1px solid #2f3c4a;
+    border-radius: 16px;
+
+    &:hover {
+        background-color: #202b36;
+        border-color: #4a5c70;
+    }
+
+    &.is-locked {
+        opacity: 0.5;
+    }
+}
+
+.role-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+
+    .role-name {
+        font-size: 22px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .role-description {
+        font-size: 14px;
+        color: #b3bcc6;
+    }
+}
+
+.income-value {
+    padding: 7px 12px;
+    border-radius: 10px;
+    background-color: #193322;
+    border: 1px solid #356b45;
+    color: #8dd89c;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.lock-text {
+    padding: 7px 12px;
+    border-radius: 10px;
+    background-color: #3a1d1d;
+    border: 1px solid #7a3b3b;
+    color: #ff8a8a;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}

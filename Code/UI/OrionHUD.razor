@@ -1,0 +1,120 @@
+@using Sandbox
+@using Sandbox.UI
+@using System.Linq
+@using System;
+@inherits PanelComponent
+
+<root style="pointer-events: @(IsDead ? "all" : "none")">
+    <div class="hud-root @(IsDead ? "is-dead" : "")">
+        
+        <div class="header-left">
+            <div class="identity-block">
+                <label class="username">@LocalName</label>
+                <div class="role-tag @RoleLower">
+                    <label>@Role</label>
+                </div>
+            </div>
+            <div class="clearance-tag">
+                <label>CLEARANCE LEVEL @Clearance</label>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="clearance-box">
+                <label class="label">PROGRESSION</label>
+                <label class="value">LEVEL @Level</label>
+
+                @if ( Level < 2 )
+                {
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: @(LevelProgress)%"></div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="footer-left">
+            <div class="vitals-group">
+                <div class="bar-track">
+                    <div class="bar-fill health-color" style="width: @(Health)%"></div>
+                </div>
+                <div class="vitals-data">
+                    <label class="label">VITAL SIGNS</label>
+                    <label class="value">@Health%</label>
+                </div>
+            </div>
+        </div>
+
+        @if ( IsDead )
+        {
+            var p = GetPlayer(true); // Get the dead player for the timer
+            var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
+
+            <div class="death-overlay">
+                <label class="death-title">TERMINATED</label>
+                <label class="death-sub">Subject designation: @LocalName</label>
+                
+                @if ( timeLeft > 0 )
+                {
+                    <label class="death-sub">Respawning available in @timeLeft...</label>
+                }
+                else
+                {
+                    <button class="respawn-button" @onclick=@(() => p?.Respawn())>
+                        RESPAWN NOW
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</root>
+
+@code {
+    /// <summary>
+    /// Finds the player. By default, it looks for a LIVING player.
+    /// If includeDead is true, it finds the first valid player regardless of state.
+    /// </summary>
+    private OrionPlayerController GetPlayer(bool includeDead = false) 
+    {
+        var allPlayers = Scene.GetAllComponents<OrionPlayerController>().ToList();
+        
+        if (includeDead)
+            return allPlayers.FirstOrDefault(x => x.IsValid);
+
+        // Filter for the living one to prevent the black screen sticking during respawn
+        return allPlayers.FirstOrDefault(x => x.IsValid && !x.IsDead);
+    }
+
+    private OrionHUDState GetHUDState() => Scene.GetAllComponents<OrionHUDState>().FirstOrDefault();
+
+    bool IsDead => GetPlayer() == null && GetPlayer(true)?.IsDead == true;
+    
+    string LocalName => Connection.Local?.DisplayName?.ToUpper() ?? "PLAYER";
+    int Health => GetPlayer(true).IsValid() ? (int)GetPlayer(true).Health : 100;
+    int Level => GetPlayer(true)?.PlayerLevel ?? 1;
+    int Clearance => GetPlayer(true)?.ClearanceLevel ?? 0;
+    string Role => GetPlayer(true)?.CurrentRole.ToString() ?? "UNASSIGNED";
+    string RoleLower => Role.ToLower();
+
+    float LevelProgress
+    {
+        get
+        {
+            var p = GetPlayer(true);
+            if ( p == null || p.PlayerLevel >= 2 ) return 100f;
+            return (p.Experience / 600f) * 100f;
+        }
+    }
+
+    protected override void OnUpdate()
+    {
+        // Re-trigger UI update
+        StateHasChanged();
+
+        var state = GetHUDState();
+        if ( state.IsValid() && state.ShowDenied && state.DeniedTimer > 2.0f )
+        {
+            state.ShowDenied = false;
+        }
+    }
+}
