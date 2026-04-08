@@ -1671,6 +1671,12 @@
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null,
+          "PlayerCamera": {
+            "_type": "component",
+            "component_id": "636cdb0b-4ae5-4e43-8e19-5c7941a92e3a",
+            "go": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
+            "component_type": "CameraComponent"
+          },
           "PlayerLevel": 1,
           "RagdollPrefab": {
             "_type": "gameobject",
@@ -1742,7 +1748,56 @@
               "UseAnimGraph": true
             }
           ],
-          "Children": []
+          "Children": [
+            {
+              "__guid": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
+              "__version": 2,
+              "Flags": 0,
+              "Name": "Main Camera",
+              "Position": "4.261927,0,62.55861",
+              "Rotation": "0,0,0,1",
+              "Scale": "1,1,1",
+              "Tags": "",
+              "Enabled": true,
+              "NetworkMode": 2,
+              "NetworkFlags": 0,
+              "NetworkOrphaned": 0,
+              "NetworkTransmit": true,
+              "OwnerTransfer": 1,
+              "Components": [
+                {
+                  "__type": "Sandbox.CameraComponent",
+                  "__guid": "636cdb0b-4ae5-4e43-8e19-5c7941a92e3a",
+                  "__enabled": true,
+                  "Flags": 0,
+                  "BackgroundColor": "0.33333,0.46275,0.52157,1",
+                  "ClearFlags": "All",
+                  "EnablePostProcessing": true,
+                  "FieldOfView": 60,
+                  "FovAxis": "Horizontal",
+                  "IsMainCamera": true,
+                  "OnComponentDestroy": null,
+                  "OnComponentDisabled": null,
+                  "OnComponentEnabled": null,
+                  "OnComponentFixedUpdate": null,
+                  "OnComponentStart": null,
+                  "OnComponentUpdate": null,
+                  "Orthographic": false,
+                  "OrthographicHeight": 1204,
+                  "PostProcessAnchor": null,
+                  "Priority": 1,
+                  "RenderExcludeTags": "",
+                  "RenderTags": "",
+                  "RenderTexture": null,
+                  "TargetEye": "None",
+                  "Viewport": "0,0,1,1",
+                  "ZFar": 10000,
+                  "ZNear": 10
+                }
+              ],
+              "Children": []
+            }
+          ]
         },
         {
           "__guid": "8881c09d-3bee-423f-99ff-78af34415488",
@@ -1812,54 +1867,6 @@
               "Static": false,
               "Surface": null,
               "SurfaceVelocity": "0,0,0"
-            }
-          ],
-          "Children": []
-        },
-        {
-          "__guid": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
-          "__version": 2,
-          "Flags": 0,
-          "Name": "Main Camera",
-          "Position": "0,0,62.55861",
-          "Rotation": "0,0,0,1",
-          "Scale": "1,1,1",
-          "Tags": "",
-          "Enabled": true,
-          "NetworkMode": 2,
-          "NetworkFlags": 0,
-          "NetworkOrphaned": 0,
-          "NetworkTransmit": true,
-          "OwnerTransfer": 1,
-          "Components": [
-            {
-              "__type": "Sandbox.CameraComponent",
-              "__guid": "636cdb0b-4ae5-4e43-8e19-5c7941a92e3a",
-              "__enabled": true,
-              "Flags": 0,
-              "BackgroundColor": "0.33333,0.46275,0.52157,1",
-              "ClearFlags": "All",
-              "EnablePostProcessing": true,
-              "FieldOfView": 60,
-              "FovAxis": "Horizontal",
-              "IsMainCamera": true,
-              "OnComponentDestroy": null,
-              "OnComponentDisabled": null,
-              "OnComponentEnabled": null,
-              "OnComponentFixedUpdate": null,
-              "OnComponentStart": null,
-              "OnComponentUpdate": null,
-              "Orthographic": false,
-              "OrthographicHeight": 1204,
-              "PostProcessAnchor": null,
-              "Priority": 1,
-              "RenderExcludeTags": "",
-              "RenderTags": "",
-              "RenderTexture": null,
-              "TargetEye": "None",
-              "Viewport": "0,0,1,1",
-              "ZFar": 10000,
-              "ZNear": 10
             }
           ],
           "Children": []
@@ -2252,7 +2259,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "2be0f4ab-a3a4-49de-85fd-3b5a2d2d82ed"
+          "$blob": "3f80c534-d885-4526-a245-23b297ccf6cf"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

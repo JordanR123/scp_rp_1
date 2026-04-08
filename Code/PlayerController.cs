@@ -23,6 +23,7 @@ public partial class OrionPlayerController : Component
 	[Property] public GameObject DClassBody { get; set; }
 	[Property] public GameObject GuardBody { get; set; }
 	[Property] public GameObject ResearcherBody { get; set; }
+	[Property] public CameraComponent PlayerCamera { get; set; }
 
 	[Property, Group( "Death" )] public GameObject RagdollPrefab { get; set; }
 
@@ -163,18 +164,28 @@ public partial class OrionPlayerController : Component
 
 	private void HandleInteraction()
 	{
-		var cam = Components.GetInChildren<CameraComponent>();
-		if ( cam == null ) return;
+		// Use the direct reference instead of searching
+		if ( !PlayerCamera.IsValid() )
+		{
+			Log.Warning( "[INTERACT] PlayerCamera property is not assigned!" );
+			return;
+		}
 
-		var tr = Scene.Trace.Ray( cam.WorldPosition, cam.WorldPosition + cam.WorldRotation.Forward * 150f )
+		var tr = Scene.Trace.Ray( PlayerCamera.WorldPosition, PlayerCamera.WorldPosition + PlayerCamera.WorldRotation.Forward * 150f )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		if ( tr.Hit && tr.GameObject.Components.Get<OrionDoor>( FindMode.EverythingInSelfAndAncestors ) is { } door )
+		if ( tr.Hit )
 		{
-			door.OnUse( GameObject );
+			Log.Info( $"[INTERACT] Hit: {tr.GameObject.Name}" );
+
+			if ( tr.GameObject.Components.Get<OrionDoor>( FindMode.EverythingInSelfAndAncestors ) is { } door )
+			{
+				door.OnUse( GameObject );
+			}
 		}
 	}
+
 
 	public void UpdateClearance()
 	{

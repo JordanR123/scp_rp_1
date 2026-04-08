@@ -25,7 +25,7 @@ public sealed class Scp173Controller : Component
 		GameObject.Tags.Add( "scp173" );
 	}
 
-	protected override void OnPreRender()
+	protected override void OnUpdate()
 	{
 		if ( !IsAwake ) return;
 
@@ -101,34 +101,35 @@ public sealed class Scp173Controller : Component
 	{
 		foreach ( var player in Scene.GetAllComponents<OrionPlayerController>() )
 		{
-			var cam = player.Components.GetInChildren<CameraComponent>();
-			if ( cam == null ) continue;
+			var cam = player.PlayerCamera;
+
+			if ( !cam.IsValid() || !cam.Enabled ) continue;
 
 			Vector3[] checkPoints = {
-				Transform.World.Position + Vector3.Up * 10f,
-				Transform.World.Position + Vector3.Up * 45f,
-				Transform.World.Position + Vector3.Up * 80f
-			};
+			Transform.World.Position + Vector3.Up * 20f,
+			Transform.World.Position + Vector3.Up * 50f,
+			Transform.World.Position + Vector3.Up * 80f
+		};
 
 			foreach ( var point in checkPoints )
 			{
-				var screenPos = cam.PointToScreenPixels( point );
+				var toTarget = (point - cam.WorldPosition).Normal;
+				var forward = cam.WorldRotation.Forward;
 
-				if ( screenPos.x > 0 && screenPos.x < Screen.Width &&
-					 screenPos.y > 0 && screenPos.y < Screen.Height )
+				if ( Vector3.Dot( forward, toTarget ) > 0.3f )
 				{
-					var tr = Scene.Trace.Ray( cam.Transform.World.Position, point )
+					var tr = Scene.Trace.Ray( cam.WorldPosition, point )
 						.IgnoreGameObjectHierarchy( player.GameObject )
 						.Run();
 
-					// Line of sight check
-					if ( !tr.Hit || tr.GameObject.Root == GameObject || tr.GameObject.Tags.Has( "scp173" ) )
+					if ( tr.Hit && (tr.GameObject.Root == GameObject || tr.GameObject.Tags.Has( "scp173" )) )
 					{
 						return true;
 					}
 				}
 			}
 		}
+
 		return false;
 	}
 }
