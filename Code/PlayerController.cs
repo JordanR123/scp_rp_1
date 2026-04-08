@@ -95,11 +95,18 @@ public partial class OrionPlayerController : Component
 
 		Experience += Time.Delta;
 
-		if ( PlayerLevel < 2 && Experience >= 600f )
+		// Level 2 at 600 XP
+		if ( PlayerLevel == 1 && Experience >= 600f )
 		{
 			PlayerLevel = 2;
 			SaveGame();
-			Log.Info( "[PROGRESSION] Level 2 reached!" );
+		}
+		// Level 3 at 1200 XP
+		else if ( PlayerLevel == 2 && Experience >= 1200f )
+		{
+			PlayerLevel = 3;
+			SaveGame();
+			Log.Info( "[PROGRESSION] Level 3 reached!" );
 		}
 
 		if ( Health <= 0 ) Die();

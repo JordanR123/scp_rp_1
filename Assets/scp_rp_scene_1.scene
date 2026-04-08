@@ -1660,9 +1660,9 @@
           "__enabled": true,
           "Flags": 0,
           "ClearanceLevel": 0,
-          "CurrentRole": "DClass",
+          "CurrentRole": "Guard",
           "DClassBody": null,
-          "Experience": 0,
+          "Experience": 1200,
           "FirstPersonArms": {
             "_type": "gameobject",
             "go": "ac3aa054-788c-49a2-b6be-bd2debe6010c"
@@ -1695,7 +1695,7 @@
             "go": "b3f0905a-d2a2-4493-bfe1-dfc7c213d283",
             "component_type": "CameraComponent"
           },
-          "PlayerLevel": 1,
+          "PlayerLevel": 2,
           "RagdollPrefab": {
             "_type": "gameobject",
             "prefab": "defaultragdoll.prefab"
@@ -1992,7 +1992,102 @@
                   "__version": 2,
                   "__Prefab": "weapons/v_m4a1.prefab",
                   "__PrefabInstancePatch": {
-                    "AddedObjects": [],
+                    "AddedObjects": [
+                      {
+                        "Id": {
+                          "Type": "GameObject",
+                          "IdValue": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93"
+                        },
+                        "Parent": {
+                          "Type": "GameObject",
+                          "IdValue": "9d63e20b-ea38-4360-bde9-1508c30751e2"
+                        },
+                        "PreviousElement": null,
+                        "ContainerProperty": "Children",
+                        "IsContainerArray": true,
+                        "Data": {
+                          "__guid": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93",
+                          "__version": 2,
+                          "Flags": 0,
+                          "Name": "v_first_person_arms_human",
+                          "Position": "173.5039,-82.66501,27.18389",
+                          "Rotation": "0,0,0,1",
+                          "Scale": "1,1,1",
+                          "Tags": "",
+                          "Enabled": true,
+                          "NetworkMode": 2,
+                          "NetworkFlags": 0,
+                          "NetworkOrphaned": 0,
+                          "NetworkTransmit": true,
+                          "OwnerTransfer": 1,
+                          "Components": [],
+                          "Children": []
+                        }
+                      },
+                      {
+                        "Id": {
+                          "Type": "Component",
+                          "IdValue": "3e966f1d-9867-4ced-b390-83584187a6e6"
+                        },
+                        "Parent": {
+                          "Type": "GameObject",
+                          "IdValue": "d8a2cbbb-22ff-4f10-ab66-90341ab16e93"
+                        },
+                        "PreviousElement": null,
+                        "ContainerProperty": "Components",
+                        "IsContainerArray": true,
+                        "Data": {
+                          "__type": "Sandbox.SkinnedModelRenderer",
+                          "__guid": "3e966f1d-9867-4ced-b390-83584187a6e6",
+                          "__enabled": true,
+                          "Flags": 0,
+                          "AnimationGraph": null,
+                          "BodyGroups": 21,
+                          "BoneMergeTarget": {
+                            "_type": "component",
+                            "component_id": "67d5b36d-d317-47d3-9880-b7ec8549fb83",
+                            "go": "9d63e20b-ea38-4360-bde9-1508c30751e2",
+                            "component_type": "SkinnedModelRenderer"
+                          },
+                          "CreateAttachments": false,
+                          "CreateBoneObjects": false,
+                          "LodOverride": null,
+                          "MaterialGroup": null,
+                          "MaterialOverride": null,
+                          "Materials": null,
+                          "Model": "models/first_person/v_first_person_arms_human.vmdl",
+                          "Morphs": {},
+                          "OnComponentDestroy": null,
+                          "OnComponentDisabled": null,
+                          "OnComponentEnabled": null,
+                          "OnComponentFixedUpdate": null,
+                          "OnComponentStart": null,
+                          "OnComponentUpdate": null,
+                          "Parameters": {
+                            "bools": {},
+                            "ints": {},
+                            "floats": {},
+                            "vectors": {},
+                            "rotations": {}
+                          },
+                          "PlaybackRate": 1,
+                          "RenderOptions": {
+                            "GameLayer": true,
+                            "OverlayLayer": false,
+                            "BloomLayer": false,
+                            "AfterUILayer": false
+                          },
+                          "RenderType": "On",
+                          "Sequence": {
+                            "Name": null,
+                            "Looping": true,
+                            "Blending": false
+                          },
+                          "Tint": "1,1,1,1",
+                          "UseAnimGraph": true
+                        }
+                      }
+                    ],
                     "RemovedObjects": [],
                     "PropertyOverrides": [
                       {
@@ -2403,7 +2498,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "0159adf1-6dd3-434a-b0ea-f090da705f85"
+          "$blob": "218ba6af-3dd5-4f4a-88ae-25494b17922a"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
@@ -2417,6 +2512,7 @@
   "__references": [
     "facepunch.corrugated_wall_a_128#169125",
     "facepunch.iron_fence_128#108382",
+    "facepunch.v_first_person_arms_human#142949",
     "facepunch.wooden_door_01d#143453",
     "hueycan.scpunityscp173v1#1436"
   ],

@@ -46,16 +46,27 @@
 }
 
 .player-card {
-    min-width: 440px;
-    max-width: 620px;
+    min-width: 200px;
+    max-width: 400px;
     padding: 14px 16px;
 }
 
 .player-main {
     display: flex;
-    flex-direction: row;
+    /* Changed from row to column to stack elements vertically */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* This container now holds the badges at the top */
+.badge-row {
+    display: flex;
+    gap: 10px;
     align-items: center;
-    gap: 14px;
+    flex-shrink: 0;
+    /* Ensure badges are at the top of the card */
+    order: 1;
 }
 
 .player-name {
@@ -63,20 +74,13 @@
     font-weight: 900;
     letter-spacing: 0.5px;
     color: white;
-    /* 🔥 FIX */
-    max-width: 260px;
+    max-width: 100%; /* Expanded to use full card width */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    flex-shrink: 1;
-}
-
-.badge-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    /* 🔥 IMPORTANT */
-    flex-shrink: 0;
+    /* Placed under the badges */
+    order: 2;
+    margin-top: 4px;
 }
 
 .role-badge,

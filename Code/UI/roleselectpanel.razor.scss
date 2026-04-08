@@ -13,7 +13,7 @@ root {
     left: 0px;
     right: 0px;
     bottom: 0px;
-    background-color: #0b1016ee;
+    background-color: #000000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,8 +28,9 @@ root {
     flex-direction: column;
     gap: 22px;
     padding: 28px;
-    background-color: #121922;
-    border: 1px solid #2a3440;
+    /* Changed from #121922 to a deeper black/dark grey */
+    background-color: #050505;
+    border: 1px solid #1a1a1a;
     border-radius: 20px;
 }
 

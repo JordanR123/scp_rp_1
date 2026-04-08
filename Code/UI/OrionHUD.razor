@@ -109,7 +109,13 @@
         {
             var p = GetPlayer(true);
             if ( p == null ) return 0f;
-            return Math.Clamp((p.Experience / 600f) * 100f, 0f, 100f);
+
+            // Calculate XP needed for the NEXT level
+            // Level 1 -> 2 needs 600, Level 2 -> 3 needs 1200
+            float targetXp = p.PlayerLevel * 600f;
+        
+            // This calculates progress relative to the current level's goal
+            return Math.Clamp((p.Experience / targetXp) * 100f, 0f, 100f);
         }
     }
 
