@@ -30,8 +30,9 @@ public partial class OrionPlayerController : Component
 
 	//Weapon System
 	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
-		public OrionWeapon ActiveWeapon { get; set; }
+	public OrionWeapon ActiveWeapon { get; set; }
 	public int CurrentSlot { get; set; } = 0;
+	public bool HasGun { get; set; } = false;
 
 	public bool IsDead { get; set; } = false;
 	public float TimeSinceDeath { get; set; } = 0f;
@@ -110,28 +111,79 @@ public partial class OrionPlayerController : Component
 
 	}
 
+	public void SetupLoadoutForRole()
+	{
+		// Default: nobody has a gun unless their role says so
+		HasGun = false;
+
+		switch ( CurrentRole )
+		{
+			case PlayerRole.Guard:
+				HasGun = true;
+				EquipWeapon( 1 ); // Guards spawn with gun equipped
+				break;
+
+			case PlayerRole.DClass:
+			case PlayerRole.Researcher:
+			default:
+				HasGun = false;
+				EquipWeapon( 0 ); // Fists only
+				break;
+		}
+
+		Log.Info( $"[LOADOUT] Role: {CurrentRole}, HasGun: {HasGun}" );
+	}
+
+
+	public void GiveGun()
+	{
+		HasGun = true;
+		Log.Info( "[LOADOUT] Gun granted to player." );
+	}
+
 
 	private void HandleWeaponInputs()
-{
-    // Slot Switching (Keys 1 and 2)
-    if ( Input.Pressed( "Slot1" ) ) EquipWeapon( 0 );
-    if ( Input.Pressed( "Slot2" ) ) EquipWeapon( 1 );
+	{
+		// Slot 1 = fists, always allowed
+		if ( Input.Pressed( "Slot1" ) )
+			EquipWeapon( 0 );
 
-    // Scroll Switching
-    if ( Input.MouseWheel.y > 0 ) EquipWeapon( (CurrentSlot + 1) % Inventory.Count );
-    if ( Input.MouseWheel.y < 0 ) EquipWeapon( (CurrentSlot - 1 + Inventory.Count) % Inventory.Count );
+		// Slot 2 = gun, only if player currently has a gun
+		if ( Input.Pressed( "Slot2" ) && HasGun )
+			EquipWeapon( 1 );
 
-    // Attack Logic for Facepunch Prefabs
-    if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() )
-    {
-        var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
-        if ( renderer.IsValid() )
-        {
-            // Triggers the animation (like b_attack) on the Facepunch prefab
-            renderer.Set( ActiveWeapon.AttackTrigger, true );
-        }
-    }
-}
+		// Mouse wheel handling
+		if ( Inventory.Count > 1 )
+		{
+			if ( Input.MouseWheel.y > 0 )
+			{
+				// If player has no gun, force fists only
+				if ( HasGun )
+					EquipWeapon( (CurrentSlot + 1) % 2 );
+				else
+					EquipWeapon( 0 );
+			}
+
+			if ( Input.MouseWheel.y < 0 )
+			{
+				// If player has no gun, force fists only
+				if ( HasGun )
+					EquipWeapon( (CurrentSlot - 1 + 2) % 2 );
+				else
+					EquipWeapon( 0 );
+			}
+		}
+
+		// Attack logic
+		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() && ActiveWeapon.ViewModel.IsValid() )
+		{
+			var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
+			if ( renderer.IsValid() )
+			{
+				renderer.Set( ActiveWeapon.AttackTrigger, true );
+			}
+		}
+	}
 
 	public void EquipWeapon( int slotIndex )
 	{

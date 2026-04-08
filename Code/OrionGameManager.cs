@@ -38,7 +38,7 @@ public class OrionGameManager : Component
 
 		// Initialize inventory: Start with Slot 0 (Fists) for everyone
 		// This prevents the 'Update' exception by ensuring ActiveWeapon isn't null
-		player.EquipWeapon( 0 );
+		player.SetupLoadoutForRole();
 
 		// Determine the target transform based on the role
 		Transform target = role switch
@@ -70,7 +70,7 @@ public class OrionGameManager : Component
 		player.Experience += 100f;
 		Log.Info( $"[REWARD] 100 Experience awarded. Total Experience: {player.Experience:F1}" );
 
-		player.EquipWeapon( 0 );
+		player.SetupLoadoutForRole();
 
 		// 2. Re-enable the camera and force it back to standard view
 		var cam = player.Components.GetInChildren<CameraComponent>( true );
