@@ -20,32 +20,35 @@ public class OrionWeapon : Component
 
 	public void Fire( SceneTraceResult tr, GameObject owner )
 	{
-		if ( !tr.Hit ) return;
+		if ( !tr.Hit )
+			return;
 
-		// 1. Apply Damage (using existing logic)
+		// 1. Apply Damage
 		if ( tr.GameObject.IsValid() )
 		{
 			var damageable = tr.GameObject.Components.Get<Component.IDamageable>( FindMode.EverythingInSelfAndAncestors );
+
 			if ( damageable != null )
 			{
-				damageable.OnDamage( new DamageInfo( Damage, owner, owner ) );
+				damageable.OnDamage( new DamageInfo()
+				{
+					Damage = Damage,
+					Attacker = owner,
+					Weapon = GameObject,
+					Position = tr.HitPosition,
+					Origin = owner.WorldPosition
+				} );
 			}
 		}
 
 		// 2. Spawn and Position the Decal
-		if ( ImpactDecalPrefab.IsValid() )
+		if ( ImpactDecalPrefab.IsValid() && tr.GameObject.IsValid() )
 		{
 			var decal = ImpactDecalPrefab.Clone();
 
-			// IMPORTANT: Set the parent BEFORE setting WorldPosition
-			// This ensures the decal stays where it hit even if the object moves
 			decal.Parent = tr.GameObject;
-
-			// Use WorldPosition to ignore any local offsets from (0,0,0)
 			decal.WorldPosition = tr.HitPosition + tr.Normal * 1.5f;
 			decal.WorldRotation = Rotation.LookAt( -tr.Normal );
-
-			// Ensure the scale isn't inherited strangely from the parent
 			decal.WorldScale = Vector3.One;
 		}
 	}

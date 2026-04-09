@@ -455,7 +455,7 @@
                 "OnComponentFixedUpdate": null,
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
-                "Range": 150,
+                "Range": 100,
                 "ViewModel": {
                   "_type": "gameobject",
                   "go": "e2cc651d-4408-4811-bf82-188519630f60"
@@ -524,7 +524,7 @@
                 "OnComponentFixedUpdate": null,
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
-                "Range": 150,
+                "Range": 4000,
                 "ViewModel": {
                   "_type": "gameobject",
                   "go": "48843790-c7ae-4fb4-b0ee-d9da1a5d2a44"
