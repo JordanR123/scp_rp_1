@@ -19,6 +19,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Sync] public float Health { get; set; } = 100f;
 	[Sync] public bool IsDead { get; set; } = false;
 	[Sync] public bool ShowXpPopup { get; set; }
+	[Sync] public bool HasChosenRole { get; set; } = false;
 	[Sync] public string XpPopupMessage { get; set; } = "";
 	[Property] public int ClearanceLevel { get; set; } = 0;
 
@@ -27,6 +28,16 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property] public CameraComponent PlayerCamera { get; set; }
 
 	[Property, Group( "Death" )] public GameObject RagdollPrefab { get; set; }
+
+
+	private string SaveFileName
+	{
+		get
+		{
+			var ownerId = GameObject.Network.OwnerId;
+			return $"player_stats_{ownerId}.json";
+		}
+	}
 
 	//Weapon System
 	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
@@ -134,7 +145,82 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		_yaw = GameObject.WorldRotation.Angles().yaw;
 		_pitch = 0f;
+
+		RefreshLocalOwnershipState();
+
+		if ( GameObject.Network.IsOwner && !HasChosenRole )
+		{
+			ShowRoleSelect();
+		}
 	}
+
+
+	public void ChooseRole( PlayerRole role )
+	{
+		if ( !GameObject.Network.IsOwner )
+			return;
+
+		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
+		if ( !manager.IsValid() )
+		{
+			Log.Warning( "[ROLE] Game manager not found." );
+			return;
+		}
+
+		manager.SpawnPlayer( this, role );
+		HideRoleSelect();
+		RefreshLocalOwnershipState();
+
+		Log.Info( $"[ROLE] {GameObject.Name} chose {role}" );
+	}
+
+
+
+	private void RefreshLocalOwnershipState()
+	{
+		bool isOwner = GameObject.Network.IsOwner && !IsProxy;
+
+		if ( PlayerCamera.IsValid() )
+		{
+			PlayerCamera.Enabled = isOwner;
+		}
+
+		Log.Info( $"[OWNER STATE] {GameObject.Name} | IsOwner={GameObject.Network.IsOwner} | IsProxy={IsProxy} | CameraEnabled={isOwner}" );
+	}
+
+	private GameObject _roleUiInstance;
+
+	private void ShowRoleSelect()
+	{
+		if ( !GameObject.Network.IsOwner )
+			return;
+
+		if ( _roleUiInstance.IsValid() )
+			return;
+
+		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
+
+		if ( !manager.IsValid() || !manager.RoleSelectPrefab.IsValid() )
+		{
+			Log.Warning( "[ROLE UI] Missing RoleSelectPrefab!" );
+			return;
+		}
+
+		_roleUiInstance = manager.RoleSelectPrefab.Clone();
+		// DO NOT NetworkSpawn UI. This must stay local-only.
+
+		Log.Info( "[ROLE UI] Local role selection shown." );
+	}
+
+	public void HideRoleSelect()
+	{
+		if ( _roleUiInstance.IsValid() )
+		{
+			_roleUiInstance.Destroy();
+			_roleUiInstance = null;
+		}
+	}
+
 
 	public void UpdatePlayerVisuals()
 	{
@@ -206,8 +292,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 
 		var look = Input.AnalogLook;
+		_yaw += look.yaw;
+		_pitch += look.pitch;
+		_pitch = _pitch.Clamp( -80f, 80f );
 
-
+		UpdateLivingCamera();
 
 		Experience += Time.Delta;
 
@@ -233,6 +322,18 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		HandleWeaponInputs();
 		
 	}
+
+
+	private void UpdateLivingCamera()
+	{
+		if ( !PlayerCamera.IsValid() )
+			return;
+
+		PlayerCamera.WorldPosition = GameObject.WorldPosition + Vector3.Up * 64f;
+		PlayerCamera.WorldRotation = Rotation.From( new Angles( _pitch, _yaw, 0f ) );
+	}
+
+
 
 	public void SetupLoadoutForRole()
 	{
@@ -513,6 +614,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		};
 	}
 
+
+
 	public void SaveGame()
 	{
 		var data = new PlayerData
@@ -521,32 +624,33 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			Experience = Experience
 		};
 
-		FileSystem.Data.WriteJson( "player_stats.json", data );
-		Log.Info( $"[SAVE SYSTEM] Progress saved - Level: {PlayerLevel}, Experience: {Experience:F1}" );
+		FileSystem.Data.WriteJson( SaveFileName, data );
+
+		Log.Info( $"[SAVE SYSTEM] Progress saved to {SaveFileName} - Level: {PlayerLevel}, Experience: {Experience:F1}" );
 	}
 
 	public void LoadGame()
 	{
-		if ( FileSystem.Data.FileExists( "player_stats.json" ) )
+		if ( FileSystem.Data.FileExists( SaveFileName ) )
 		{
-			var data = FileSystem.Data.ReadJson<PlayerData>( "player_stats.json" );
+			var data = FileSystem.Data.ReadJson<PlayerData>( SaveFileName );
 
 			if ( data != null )
 			{
 				PlayerLevel = data.Level;
 				Experience = data.Experience;
-				Log.Info( $"[SAVE SYSTEM] Loaded Level: {PlayerLevel} & Loaded Experience: {Experience:F1}" );
+				Log.Info( $"[SAVE SYSTEM] Loaded from {SaveFileName} - Level: {PlayerLevel}, Experience: {Experience:F1}" );
 			}
 			else
 			{
-				Log.Warning( "[SAVE SYSTEM] Save file found but could not be read. Resetting stats." );
+				Log.Warning( $"[SAVE SYSTEM] Save file {SaveFileName} found but could not be read. Resetting stats." );
 				PlayerLevel = 1;
 				Experience = 0f;
 			}
 		}
 		else
 		{
-			Log.Info( "[SAVE SYSTEM] No save file found. Initializing new player data (Level 1)." );
+			Log.Info( $"[SAVE SYSTEM] No save file found for {SaveFileName}. Initializing new player data." );
 			PlayerLevel = 1;
 			Experience = 0f;
 		}

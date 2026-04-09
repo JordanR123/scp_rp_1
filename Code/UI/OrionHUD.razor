@@ -92,19 +92,33 @@
 </root>
 
 @code {
-    private OrionPlayerController GetPlayer(bool includeDead = false)
+    private OrionPlayerController GetLocalPlayer()
     {
-        var allPlayers = Scene.GetAllComponents<OrionPlayerController>().ToList();
+        return Scene.GetAllComponents<OrionPlayerController>()
+            .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner );
+    }
 
-        if ( includeDead )
-            return allPlayers.FirstOrDefault(x => x.IsValid);
+    private OrionPlayerController GetPlayer()
+    {
+        return GetLocalPlayer();
+    }
 
-        return allPlayers.FirstOrDefault(x => x.IsValid && !x.IsDead);
+    private OrionPlayerController GetPlayer( bool includeDead )
+    {
+        var player = GetLocalPlayer();
+
+        if ( !player.IsValid() )
+            return null;
+
+        if ( !includeDead && player.IsDead )
+            return null;
+
+        return player;
     }
 
     private OrionHUDState GetHUDState() => Scene.GetAllComponents<OrionHUDState>().FirstOrDefault();
 
-    bool IsDead => GetPlayer() == null && GetPlayer(true)?.IsDead == true;
+    bool IsDead => GetPlayer(true)?.IsDead ?? false;
     bool ShowDenied => GetHUDState().IsValid() && GetHUDState().ShowDenied;
 
     bool ShowXpGiftPopup => GetPlayer(true)?.ShowXpPopup ?? false;

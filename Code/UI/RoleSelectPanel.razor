@@ -54,26 +54,54 @@
                 </div>
             </div>
         </div>
+
+
     }
 </root>
 
 @code {
-    [Property] public bool IsOpen { get; set; } = true;
+       [Property] public bool IsOpen { get; set; } = true;
+
+    OrionPlayerController GetLocalPlayer()
+    {
+        return Game.ActiveScene.GetAllComponents<OrionPlayerController>()
+            .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner && !x.IsProxy );
+    }
 
     int GetLevel()
     {
-        return Game.ActiveScene.GetAllComponents<OrionPlayerController>().FirstOrDefault()?.PlayerLevel ?? 1;
+        return GetLocalPlayer()?.PlayerLevel ?? 1;
     }
 
-    void SelectRole(PlayerRole role)
+    void SelectRole( PlayerRole role )
     {
-        if ( GetLevel() < 2 && role != PlayerRole.DClass )
+        var player = GetLocalPlayer();
+        if ( !player.IsValid() )
+        {
+            Log.Warning( "[ROLE SELECT] Could not find local player." );
             return;
+        }
 
-        var manager = Game.ActiveScene.GetAllComponents<OrionGameManager>().FirstOrDefault();
-        manager?.SpawnPlayer( role );
+        if ( player.PlayerLevel < 2 && role != PlayerRole.DClass )
+        {
+            Log.Warning( $"[ROLE SELECT] Level too low for role {role}." );
+            return;
+        }
+
+        player.ChooseRole( role );
 
         IsOpen = false;
         StateHasChanged();
     }
+
+        void Respawn()
+        {
+        }
+
+    }   
+
+
+
+
 }
+

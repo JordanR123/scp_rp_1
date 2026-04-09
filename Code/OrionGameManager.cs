@@ -11,27 +11,19 @@ public class OrionGameManager : Component
 
 	protected override void OnStart()
 	{
-		// Ensure the Role Selection UI is created if it doesn't exist
-		if ( RoleSelectPrefab.IsValid() )
-		{
-			var menu = RoleSelectPrefab.Clone();
-			menu.NetworkSpawn();
-		}
 	}
 
 
-	public void SpawnPlayer( PlayerRole role )
+	public void SpawnPlayer( OrionPlayerController player, PlayerRole role )
 	{
-		var player = Game.ActiveScene.GetAllComponents<OrionPlayerController>()
-			.FirstOrDefault( x => !x.IsProxy && x.GameObject.Network.IsOwner );
-
 		if ( !player.IsValid() )
 		{
-			Log.Error( "SpawnPlayer: Could not find owned OrionPlayerController!" );
+			Log.Error( "SpawnPlayer: player was invalid." );
 			return;
 		}
 
 		player.CurrentRole = role;
+		player.HasChosenRole = true;
 		player.UpdateClearance();
 		player.UpdatePlayerVisuals();
 		player.SetupLoadoutForRole();
@@ -47,7 +39,14 @@ public class OrionGameManager : Component
 		player.Transform.World = target;
 		player.Network.ClearInterpolation();
 
-		Log.Info( $"[SPAWN] Player assigned to {role} and moved to sector." );
+		if ( player.PlayerCamera.IsValid() )
+		{
+			player.PlayerCamera.Enabled = player.GameObject.Network.IsOwner;
+			player.PlayerCamera.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * 64f;
+			player.PlayerCamera.WorldRotation = player.GameObject.WorldRotation;
+		}
+
+		Log.Info( $"[SPAWN] {player.GameObject.Name} assigned to {role} and moved to sector." );
 	}
 
 	public void ResetPlayer( OrionPlayerController player )
@@ -70,16 +69,14 @@ public class OrionGameManager : Component
 
 
 		// 2. Re-enable the camera and force it back to standard view
-		var cam = player.Components.GetInChildren<CameraComponent>( true );
+		var cam = player.PlayerCamera;
 		if ( cam.IsValid() )
 		{
-			cam.Enabled = true;
+			cam.Enabled = player.GameObject.Network.IsOwner;
+			cam.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * 64f;
+			cam.WorldRotation = player.GameObject.WorldRotation;
 
-			// This uses the explicit constructor to avoid naming conflicts with 'Transform'
-			cam.LocalPosition = Vector3.Zero;
-			cam.LocalRotation = Rotation.Identity;
-
-			Log.Info( "[RESET] Camera local transform zeroed out." );
+			Log.Info( $"[RESET] Camera restored. Enabled={cam.Enabled}" );
 		}
 
 		// 3. Move to Spawn Point

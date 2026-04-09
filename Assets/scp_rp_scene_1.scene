@@ -1729,7 +1729,7 @@
           "Components": [
             {
               "__type": "OrionGameManager",
-              "__guid": "835c16b5-abde-49a5-9aaf-d088bd02d175",
+              "__guid": "2fd87500-6b0d-4c00-b4dc-1ee0c40844c7",
               "__enabled": true,
               "Flags": 0,
               "DBlockSpawn": {
@@ -1888,7 +1888,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "a26b1cda-28f3-4c7f-9c14-7155879254f8"
+          "$blob": "96b99e57-794c-4ce9-abbc-63739852ccb4"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

@@ -34,8 +34,10 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 			spawnTransform = SpawnPoints[0].Transform.World;
 
 		// Inside OrionNetworkManager.cs -> OnActive
-		var player = PlayerPrefab.Clone(); // Clone first
-		player.Transform.World = spawnTransform; // Position second
+		var player = PlayerPrefab.Clone();
+		player.Transform.World = spawnTransform;
 		player.NetworkSpawn( connection );
+
+		Log.Info( $"[NET] Spawned player for connection {connection.Id} at {spawnTransform.Position}" );
 	}
 }
