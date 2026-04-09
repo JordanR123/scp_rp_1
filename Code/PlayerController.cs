@@ -43,11 +43,75 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
-	//Weapon System
+
+	// Weapon System
 	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
 	public OrionWeapon ActiveWeapon { get; set; }
 	public int CurrentSlot { get; set; } = 0;
 	public bool HasGun { get; set; } = false;
+
+	[Sync( Flags = SyncFlags.FromHost )] public int AmmoInMagazine { get; set; } = 30;
+	[Sync( Flags = SyncFlags.FromHost )] public bool IsReloading { get; set; } = false;
+
+	[Property, Group( "Weapon" )] public float ReloadTime { get; set; } = 1.8f;
+
+	private TimeUntil _reloadTimer;
+
+
+	private OrionWeapon GetGunWeapon()
+	{
+		if ( Inventory.Count <= 1 )
+			return null;
+
+		var weapon = Inventory[1];
+		return weapon.IsValid() ? weapon : null;
+	}
+
+	private void FillMagazineFromWeapon()
+	{
+		var gun = GetGunWeapon();
+		if ( gun.IsValid() )
+		{
+			AmmoInMagazine = gun.MagazineSize;
+		}
+	}
+
+	private void StartReload()
+	{
+		if ( !HasGun || CurrentSlot != 1 )
+			return;
+
+		var gun = GetGunWeapon();
+		if ( !gun.IsValid() )
+			return;
+
+		if ( IsReloading )
+			return;
+
+		if ( AmmoInMagazine >= gun.MagazineSize )
+			return;
+
+		IsReloading = true;
+		_reloadTimer = ReloadTime;
+
+		Log.Info( $"[RELOAD START] Player={GameObject.Name}" );
+	}
+
+	private void UpdateReload()
+	{
+		if ( !IsReloading )
+			return;
+
+		if ( _reloadTimer > 0f )
+			return;
+
+		IsReloading = false;
+		FillMagazineFromWeapon();
+
+		Log.Info( $"[RELOAD COMPLETE] Player={GameObject.Name} | Ammo={AmmoInMagazine}" );
+	}
+
+
 
 	// XP System
 	private const float ResearcherXpGiftAmount = 100f;
@@ -351,8 +415,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( Input.Pressed( "GiveXP" ) )
 			TryGiveXpFromLook();
 
+		UpdateReload();
 		HandleWeaponInputs();
 		
+
 	}
 
 
@@ -376,13 +442,19 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			case PlayerRole.Guard:
 				HasGun = true;
+				FillMagazineFromWeapon();
 				EquipWeapon( 1 ); // Guards spawn with gun equipped
 				break;
 
 			case PlayerRole.DClass:
+				HasGun = true;
+				FillMagazineFromWeapon();
+				EquipWeapon( 1 ); // Give gun for testing
+				break;
 			case PlayerRole.Researcher:
 			default:
 				HasGun = false;
+				AmmoInMagazine = 0;
 				EquipWeapon( 0 ); // Fists only
 				break;
 		}
@@ -403,6 +475,22 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		Log.Info( "[LOADOUT] Gun granted to player." );
 	}
 
+	public bool IsGunEquipped =>
+	HasGun && CurrentSlot == 1 && ActiveWeapon.IsValid();
+
+	public int CurrentAmmo =>
+		IsGunEquipped ? AmmoInMagazine : 0;
+
+	public int CurrentMagazineSize
+	{
+		get
+		{
+			if ( Inventory.Count <= 1 || !Inventory[1].IsValid() )
+				return 0;
+
+			return Inventory[1].MagazineSize;
+		}
+	}
 
 	private void HandleWeaponInputs()
 	{
@@ -419,7 +507,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			if ( Input.MouseWheel.y > 0 )
 			{
-				// If player has no gun, force fists only
 				if ( HasGun )
 					EquipWeapon( (CurrentSlot + 1) % 2 );
 				else
@@ -428,7 +515,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 			if ( Input.MouseWheel.y < 0 )
 			{
-				// If player has no gun, force fists only
 				if ( HasGun )
 					EquipWeapon( (CurrentSlot - 1 + 2) % 2 );
 				else
@@ -436,12 +522,33 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			}
 		}
 
+		if ( Input.Pressed( "Reload" ) )
+		{
+			StartReload();
+		}
+
 		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() && PlayerCamera.IsValid() )
 		{
+			// No firing while reloading. Revolutionary technology.
+			if ( CurrentSlot == 1 )
+			{
+				if ( IsReloading )
+					return;
+
+				if ( !HasGun )
+					return;
+
+				if ( AmmoInMagazine <= 0 )
+				{
+					StartReload();
+					return;
+				}
+			}
+
 			Log.Info(
 				$"[CLIENT ATTACK INPUT] Player={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
 				$"Weapon={ActiveWeapon.WeaponName} | Slot={CurrentSlot} | HasGun={HasGun} | " +
-				$"Origin={PlayerCamera.WorldPosition} | Forward={PlayerCamera.WorldRotation.Forward}"
+				$"Ammo={AmmoInMagazine} | Origin={PlayerCamera.WorldPosition} | Forward={PlayerCamera.WorldRotation.Forward}"
 			);
 
 			PlayAttackEffects();
@@ -457,13 +564,26 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Rpc.Broadcast]
 	private void PlayAttackEffects()
 	{
-		if ( !ActiveWeapon.IsValid() || !ActiveWeapon.ViewModel.IsValid() )
+		if ( !ActiveWeapon.IsValid() )
 			return;
 
-		var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
-		if ( renderer.IsValid() )
+		if ( ActiveWeapon.ViewModel.IsValid() )
 		{
-			renderer.Set( ActiveWeapon.AttackTrigger, true );
+			var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
+			if ( renderer.IsValid() )
+			{
+				renderer.Set( ActiveWeapon.AttackTrigger, true );
+			}
+		}
+
+		if ( ActiveWeapon.ShootSound is not null )
+		{
+			Log.Info( $"[GUN SOUND] Playing {ActiveWeapon.ShootSound.ResourceName}" );
+			ActiveWeapon.GameObject.PlaySound( ActiveWeapon.ShootSound, Vector3.Zero );
+		}
+		else
+		{
+			Log.Warning( $"[GUN SOUND] No ShootSound assigned on weapon {ActiveWeapon.WeaponName}" );
 		}
 	}
 
@@ -474,6 +594,25 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			$"[HOST FIRE RPC RECEIVED] Shooter={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
 			$"Slot={slotIndex} | Origin={origin} | Direction={direction}"
 		);
+
+
+		if ( slotIndex == 1 )
+		{
+			if ( IsReloading )
+			{
+				Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} is reloading." );
+				return;
+			}
+
+			if ( AmmoInMagazine <= 0 )
+			{
+				Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} has empty magazine." );
+				return;
+			}
+
+			AmmoInMagazine--;
+			Log.Info( $"[HOST AMMO] Shooter={GameObject.Name} | AmmoInMagazine={AmmoInMagazine}" );
+		}
 
 		if ( IsDead )
 		{

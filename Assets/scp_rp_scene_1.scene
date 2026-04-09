@@ -291,6 +291,83 @@
           "Children": []
         },
         {
+          "__guid": "d1781f27-8bf2-4ddc-9de2-24ea92db9c6b",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Floor Spawn Room",
+          "Position": "-300,-100,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "9fcc9228-3157-4d95-9c34-723762bfe11b",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "LodOverride": null,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Materials": {
+                "indexed": {
+                  "0": "dev/helper/testgrid.vmat"
+                }
+              },
+              "Model": "models/dev/plane.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.PlaneCollider",
+              "__guid": "b4ada975-bbf4-4dd4-8379-a03f85390d58",
+              "__enabled": true,
+              "Flags": 0,
+              "Center": "0,0,0",
+              "ColliderFlags": 0,
+              "Elasticity": null,
+              "Friction": null,
+              "IsTrigger": false,
+              "Normal": "0,0,1",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
+              "RollingResistance": null,
+              "Scale": "100,100",
+              "Static": true,
+              "Surface": null,
+              "SurfaceVelocity": "0,0,0"
+            }
+          ],
+          "Children": []
+        },
+        {
           "__guid": "f62cf59d-eeb3-457e-86a9-d43f76685be3",
           "__version": 2,
           "Flags": 0,
@@ -1530,6 +1607,24 @@
           "OwnerTransfer": 1,
           "Components": [],
           "Children": []
+        },
+        {
+          "__guid": "10c7e1c7-4694-459f-bb87-b498b4043107",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Spawn Spawn Room",
+          "Position": "-1499.4,-625.2532,0.001480103",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [],
+          "Children": []
         }
       ]
     },
@@ -1856,7 +1951,7 @@
               "SpawnPoints": [
                 {
                   "_type": "gameobject",
-                  "go": "94f6ce78-89f9-4644-8989-0dd4e6e6da70"
+                  "go": "10c7e1c7-4694-459f-bb87-b498b4043107"
                 }
               ]
             }
@@ -1887,7 +1982,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "a5218cfe-2728-4d15-8884-9931d9652094"
+          "$blob": "df09212b-74a3-47d2-98ed-6d3b8fb41d43"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

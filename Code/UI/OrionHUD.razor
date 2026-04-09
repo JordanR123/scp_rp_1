@@ -65,6 +65,16 @@
 }
 
 
+        @if ( LocalPlayer is not null && LocalPlayer.IsGunEquipped )
+{
+	<div class="ammo">
+		<span class="current">@LocalPlayer.CurrentAmmo</span>
+		<span class="slash">/</span>
+		<span class="max">@LocalPlayer.CurrentMagazineSize</span>
+	</div>
+}
+
+
          @if ( IsDead )
         {
             var p = GetLocalPlayer();
@@ -98,6 +108,20 @@ private OrionPlayerController GetLocalPlayer()
         return Scene.GetAllComponents<OrionPlayerController>()
             .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner && !x.IsProxy );
     }
+
+
+    private OrionPlayerController LocalPlayer => GetLocalPlayer();
+
+protected override int BuildHash()
+{
+	return HashCode.Combine(
+		LocalPlayer?.HasGun ?? false,
+		LocalPlayer?.CurrentSlot ?? -1,
+		LocalPlayer?.CurrentAmmo ?? 0,
+		LocalPlayer?.CurrentMagazineSize ?? 0
+	);
+}
+
 
 
         private void RespawnLocalPlayer()

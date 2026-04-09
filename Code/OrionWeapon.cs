@@ -10,6 +10,11 @@ public class OrionWeapon : Component
 	[Property] public float Damage { get; set; } = 10f;
 	[Property] public float Range { get; set; } = 150f;
 
+	[Property, Group( "Ammo" )] public int MagazineSize { get; set; } = 30;
+
+	[Property, Group( "Audio" )]
+	public SoundEvent ShootSound { get; set; }
+
 	// Back to GameObject; we will put a Decal Renderer on this prefab
 	[Property] public GameObject ImpactDecalPrefab { get; set; }
 
