@@ -65,10 +65,10 @@
 }
 
 
-        @if ( IsDead )
+         @if ( IsDead )
         {
-            var p = GetPlayer(true);
-            var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
+            var p = GetLocalPlayer();
+            var timeLeft = Math.Max( 0, (int)(10 - (p?.TimeSinceDeath ?? 0)) );
 
             <div class="death-screen">
                 <div class="death-overlay">
@@ -81,22 +81,36 @@
                     }
                     else
                     {
-                        <button class="respawn-button" @onclick=@(() => p?.Respawn())>
+                        <button class="respawn-button" @onclick=@RespawnLocalPlayer>
                             RESPAWN NOW
                         </button>
                     }
                 </div>
             </div>
         }
+
     </div>
 </root>
 
 @code {
-    private OrionPlayerController GetLocalPlayer()
+private OrionPlayerController GetLocalPlayer()
     {
         return Scene.GetAllComponents<OrionPlayerController>()
-            .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner );
+            .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner && !x.IsProxy );
     }
+
+
+        private void RespawnLocalPlayer()
+        {
+            var player = GetLocalPlayer();
+            if ( !player.IsValid() )
+                return;
+
+            if ( !player.IsLocalDead )
+                return;
+
+            player.Respawn();
+        }
 
     private OrionPlayerController GetPlayer()
     {
@@ -118,7 +132,7 @@
 
     private OrionHUDState GetHUDState() => Scene.GetAllComponents<OrionHUDState>().FirstOrDefault();
 
-    bool IsDead => GetPlayer(true)?.IsDead ?? false;
+    bool IsDead => GetPlayer(true)?.IsLocalDead ?? false;
     bool ShowDenied => GetHUDState().IsValid() && GetHUDState().ShowDenied;
 
     bool ShowXpGiftPopup => GetPlayer(true)?.ShowXpPopup ?? false;

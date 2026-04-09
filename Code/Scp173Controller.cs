@@ -8,7 +8,9 @@ public sealed class Scp173Controller : Component
 	[Property, Group( "Stats" )] public float MoveSpeed { get; set; } = 1500f;
 	[Property, Group( "Stats" )] public float KillCooldown { get; set; } = 1.0f;
 	[Property, Group( "Stats" )] public float ResetDelay { get; set; } = 5.0f;
-	[Property] public bool IsAwake { get; set; } = false;
+	[Sync] public bool IsAwake { get; set; } = false;
+	[Sync] public Vector3 NetworkPosition { get; set; }
+	[Sync] public Rotation NetworkRotation { get; set; }
 
 	private RealTimeSince _lastKillTime;
 	private RealTimeSince _lastTimeWatched;
@@ -21,16 +23,29 @@ public sealed class Scp173Controller : Component
 		_spawnRotation = Transform.World.Rotation;
 		_lastTimeWatched = 0;
 
-		// Add a tag so the visibility trace can always identify this object
+		NetworkPosition = Transform.World.Position;
+		NetworkRotation = Transform.World.Rotation;
+
 		GameObject.Tags.Add( "scp173" );
 	}
 
 	protected override void OnUpdate()
 	{
-		if ( !IsAwake ) return;
+		// Non-authority clients do not simulate SCP logic.
+		if ( IsProxy )
+		{
+			var t = Transform.World;
+			t.Position = NetworkPosition;
+			t.Rotation = NetworkRotation;
+			Transform.World = t;
+			return;
+		}
+
+		if ( !IsAwake )
+			return;
 
 		var target = Scene.GetAllComponents<OrionPlayerController>()
-			.Where( x => x.Health > 0 )
+			.Where( x => x.IsValid() && x.Health > 0 && !x.IsDead )
 			.OrderBy( x => Vector3.DistanceBetween( Transform.World.Position, x.Transform.World.Position ) )
 			.FirstOrDefault();
 
@@ -39,18 +54,24 @@ public sealed class Scp173Controller : Component
 		if ( beingWatched )
 		{
 			_lastTimeWatched = 0;
+			NetworkPosition = Transform.World.Position;
+			NetworkRotation = Transform.World.Rotation;
 			return;
 		}
 
 		if ( _lastTimeWatched > ResetDelay )
 		{
 			ResetToSpawn();
+			NetworkPosition = Transform.World.Position;
+			NetworkRotation = Transform.World.Rotation;
 			return;
 		}
 
 		if ( target != null )
 		{
 			MoveAndAttack( target );
+			NetworkPosition = Transform.World.Position;
+			NetworkRotation = Transform.World.Rotation;
 		}
 	}
 
@@ -74,7 +95,10 @@ public sealed class Scp173Controller : Component
 
 	private void Attack( OrionPlayerController target )
 	{
-		Log.Info( "SCP-173 SNAPPED NECK!" );
+		if ( !target.IsValid() || target.IsDead || target.Health <= 0 )
+			return;
+
+		Log.Info( $"SCP-173 SNAPPED NECK of {target.GameObject.Name}!" );
 		Sound.Play( "ui.button.press", target.Transform.World.Position );
 
 		target.OnDamage( new DamageInfo
@@ -83,21 +107,27 @@ public sealed class Scp173Controller : Component
 			Attacker = GameObject,
 			Position = target.Transform.World.Position
 		} );
+
 		_lastKillTime = 0;
 
 		var t = Transform.World;
 		t.Position = target.Transform.World.Position + (target.Transform.World.Rotation.Forward * 35f);
 		t.Rotation = Rotation.LookAt( -target.Transform.World.Rotation.Forward );
 		Transform.World = t;
+
+		NetworkPosition = Transform.World.Position;
+		NetworkRotation = Transform.World.Rotation;
 	}
 
 	private void ResetToSpawn()
 	{
-		// Fixed the WorldTransform error here
 		var t = Transform.World;
 		t.Position = _spawnPosition;
 		t.Rotation = _spawnRotation;
 		Transform.World = t;
+
+		NetworkPosition = Transform.World.Position;
+		NetworkRotation = Transform.World.Rotation;
 
 		_lastTimeWatched = 0;
 	}
