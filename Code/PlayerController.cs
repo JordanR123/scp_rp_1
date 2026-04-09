@@ -190,6 +190,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			PlayerCamera.Enabled = isOwner;
 		}
 
+		UpdateWeaponVisibility();
+
 		Log.Info( $"[OWNER STATE] {GameObject.Name} | IsOwner={GameObject.Network.IsOwner} | IsProxy={IsProxy} | CameraEnabled={isOwner}" );
 	}
 
@@ -644,40 +646,61 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 
-
+	private GameObject _viewModelInstance;
 
 	public void EquipWeapon( int slotIndex )
 	{
-		if ( slotIndex < 0 || slotIndex >= Inventory.Count ) return;
-
-		foreach ( var weapon in Inventory )
-		{
-			if ( weapon.IsValid() ) weapon.SetVisible( false );
-		}
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+			return;
 
 		CurrentSlot = slotIndex;
 		ActiveWeapon = Inventory[slotIndex];
 
-		if ( ActiveWeapon.IsValid() )
+		UpdateWeaponVisibility();
+	}
+
+
+	private void UpdateWeaponVisibility()
+	{
+		bool isLocalFirstPerson = GameObject.Network.IsOwner && !IsProxy && !IsDead;
+
+		for ( int i = 0; i < Inventory.Count; i++ )
 		{
-			// 1. Parent the weapon container to the camera
-			ActiveWeapon.GameObject.Parent = PlayerCamera.GameObject;
-			ActiveWeapon.SetVisible( true );
+			var weapon = Inventory[i];
+			if ( !weapon.IsValid() )
+				continue;
 
-			// 2. Reset the container's local transform
-			ActiveWeapon.LocalPosition = Vector3.Zero;
-			ActiveWeapon.LocalRotation = Rotation.Identity;
+			bool isActive = i == CurrentSlot;
+			bool shouldShow = isLocalFirstPerson && isActive;
 
-			// 3. FORCE the actual model mesh to be in front of the camera
-			if ( ActiveWeapon.ViewModel.IsValid() )
+			weapon.SetVisible( shouldShow );
+
+			if ( shouldShow && PlayerCamera.IsValid() )
 			{
-				ActiveWeapon.ViewModel.LocalPosition = ActiveWeapon.ViewOffset;
-				ActiveWeapon.ViewModel.LocalRotation = Rotation.Identity;
-			}
+				weapon.GameObject.Parent = PlayerCamera.GameObject;
+				weapon.LocalPosition = Vector3.Zero;
+				weapon.LocalRotation = Rotation.Identity;
 
-			Log.Info( $"[EQUIP] {ActiveWeapon.WeaponName} model forced into view." );
+				if ( weapon.ViewModel.IsValid() )
+				{
+					weapon.ViewModel.LocalPosition = weapon.ViewOffset;
+					weapon.ViewModel.LocalRotation = Rotation.Identity;
+				}
+			}
 		}
 	}
+
+	private void DestroyViewModel()
+	{
+		if ( _viewModelInstance.IsValid() )
+		{
+			_viewModelInstance.Destroy();
+			_viewModelInstance = null;
+		}
+	}
+
+
+
 
 	public void OnKilled( in DamageInfo damage )
 	{

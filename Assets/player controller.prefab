@@ -207,13 +207,13 @@
         "Inventory": [
           {
             "_type": "component",
-            "component_id": "3eea0aa1-d027-4f8c-a175-85def888c62f",
+            "component_id": "c61ad302-a9f2-45b9-b79e-58b83d1bd0cf",
             "go": "1ea53737-1d2a-43c4-837d-fff01bad3ed6",
             "component_type": "OrionWeapon"
           },
           {
             "_type": "component",
-            "component_id": "d65e23b4-a138-4156-9ce3-1d081e697514",
+            "component_id": "24a412ee-7547-4ff1-9f0b-d7c4e1a36c48",
             "go": "08f9cbe9-2708-42d3-886e-bb9c18160f9c",
             "component_type": "OrionWeapon"
           }
@@ -270,7 +270,12 @@
             "MaterialOverride": null,
             "Materials": null,
             "Model": "models/citizen/citizen.vmdl",
-            "Morphs": {},
+            "Morphs": {
+              "browlowererL": 0,
+              "browlowererR": 0,
+              "cheekinflateL": 0,
+              "cheekinflateR": 0
+            },
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
             "OnComponentEnabled": null,

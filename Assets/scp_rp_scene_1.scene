@@ -514,7 +514,6 @@
               "__guid": "d2507fb9-167b-47cf-9f18-732504b62824",
               "__enabled": true,
               "Flags": 0,
-              "IsAwake": false,
               "KillCooldown": 1.5,
               "KillRange": 80,
               "MoveSpeed": 1000,
@@ -1888,7 +1887,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "96b99e57-794c-4ce9-abbc-63739852ccb4"
+          "$blob": "a5218cfe-2728-4d15-8884-9931d9652094"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {
