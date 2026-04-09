@@ -3,6 +3,7 @@
 @using System.Linq
 @inherits PanelComponent
 
+
 <root>
     @if ( IsOpen )
     {
@@ -14,14 +15,16 @@
                 </div>
 
                 <div class="role-container">
+                    @* D-Class Entry *@
                     <button class="role-entry" @onclick="@(() => SelectRole(PlayerRole.DClass))">
                         <div class="role-meta">
                             <label class="role-name">D-CLASS PERSONNEL</label>
                             <label class="role-description">Expendable subject. Baseline access.</label>
                         </div>
-                        <label class="income-value">$2/min</label>
+                        @* Income label removed from here *@
                     </button>
 
+                    @* Security Guard Entry *@
                     <button class="role-entry @(GetLevel() < 2 ? "is-locked" : "")" @onclick="@(() => SelectRole(PlayerRole.Guard))">
                         <div class="role-meta">
                             <label class="role-name">SECURITY GUARD</label>
@@ -31,12 +34,10 @@
                         {
                             <label class="lock-text">LOCKED</label>
                         }
-                        else
-                        {
-                            <label class="income-value">$10/min</label>
-                        }
+                        @* Income label removed from the else block *@
                     </button>
 
+                    @* Researcher Entry *@
                     <button class="role-entry @(GetLevel() < 2 ? "is-locked" : "")" @onclick="@(() => SelectRole(PlayerRole.Researcher))">
                         <div class="role-meta">
                             <label class="role-name">RESEARCHER</label>
@@ -46,16 +47,11 @@
                         {
                             <label class="lock-text">LOCKED</label>
                         }
-                        else
-                        {
-                            <label class="income-value">$15/min</label>
-                        }
+                        @* Income label removed from the else block *@
                     </button>
                 </div>
             </div>
         </div>
-
-
     }
 </root>
 
