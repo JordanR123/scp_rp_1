@@ -77,7 +77,12 @@ public sealed class Scp173Controller : Component
 		Log.Info( "SCP-173 SNAPPED NECK!" );
 		Sound.Play( "ui.button.press", target.Transform.World.Position );
 
-		target.Die();
+		target.OnDamage( new DamageInfo
+		{
+			Damage = 999f,
+			Attacker = GameObject,
+			Position = target.Transform.World.Position
+		} );
 		_lastKillTime = 0;
 
 		var t = Transform.World;

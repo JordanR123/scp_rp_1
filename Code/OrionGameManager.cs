@@ -57,7 +57,7 @@ public class OrionGameManager : Component
 		Log.Info( $"[RESET] Relocating player: {player.GameObject.Name}" );
 
 		// 1. Restore Stats
-		player.Health = 100f;
+		player.Health = player.MaxHealth;
 		player.IsDead = false;
 		player.TimeSinceDeath = 0f;
 
@@ -66,6 +66,8 @@ public class OrionGameManager : Component
 		Log.Info( $"[REWARD] 100 Experience awarded. Total Experience: {player.Experience:F1}" );
 
 		player.SetupLoadoutForRole();
+		player.EquipWeapon( player.HasGun ? 1 : 0 );
+
 
 		// 2. Re-enable the camera and force it back to standard view
 		var cam = player.Components.GetInChildren<CameraComponent>( true );

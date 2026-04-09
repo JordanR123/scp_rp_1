@@ -55,27 +55,31 @@
             </div>
         }
 
+
+
         @if ( IsDead )
-        {
-            var p = GetPlayer(true);
-            var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
+{
+    var p = GetPlayer(true);
+    var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
 
-            <div class="death-overlay">
-                <label class="death-title">TERMINATED</label>
-                <label class="death-sub">SUBJECT: @LocalName</label>
+    <div class="death-screen">
+        <div class="death-overlay">
+            <label class="death-title">TERMINATED</label>
+            <label class="death-sub">SUBJECT: @LocalName</label>
 
-                @if ( timeLeft > 0 )
-                {
-                    <label class="death-sub">RESPAWN AVAILABLE IN @timeLeft</label>
-                }
-                else
-                {
-                    <button class="respawn-button" @onclick=@(() => p?.Respawn())>
-                        RESPAWN NOW
-                    </button>
-                }
-            </div>
-        }
+            @if ( timeLeft > 0 )
+            {
+                <label class="death-sub">RESPAWN AVAILABLE IN @timeLeft</label>
+            }
+            else
+            {
+                <button class="respawn-button" @onclick=@(() => p?.Respawn())>
+                    RESPAWN NOW
+                </button>
+            }
+        </div>
+    </div>
+}
     </div>
 </root>
 

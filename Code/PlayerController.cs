@@ -1,4 +1,4 @@
-using Sandbox;
+﻿using Sandbox;
 using System;
 using System.Linq;
 
@@ -10,12 +10,14 @@ public class PlayerData
 	public float Experience { get; set; }
 }
 
-public partial class OrionPlayerController : Component
+public partial class OrionPlayerController : Component, Component.IDamageable
 {
 	[Property] public PlayerRole CurrentRole { get; set; } = PlayerRole.DClass;
 	[Property] public int PlayerLevel { get; set; } = 1;
 	[Property] public float Experience { get; set; } = 0f;
-	[Property] public float Health { get; set; } = 100f;
+	[Property] public float MaxHealth { get; set; } = 100f;
+	[Sync] public float Health { get; set; } = 100f;
+	[Sync] public bool IsDead { get; set; } = false;
 	[Property] public int ClearanceLevel { get; set; } = 0;
 
 	// ASSIGN THESE 3 BODY OBJECTS IN THE INSPECTOR
@@ -30,7 +32,7 @@ public partial class OrionPlayerController : Component
 	public int CurrentSlot { get; set; } = 0;
 	public bool HasGun { get; set; } = false;
 
-	public bool IsDead { get; set; } = false;
+	
 	public float TimeSinceDeath { get; set; } = 0f;
 
 	private Vector3 _deathLocation;
@@ -53,6 +55,36 @@ public partial class OrionPlayerController : Component
 	{
 		// Intentionally empty for now.
 		// Role-specific body visuals will be added later.
+	}
+
+	public void OnDamage( in DamageInfo damage )
+	{
+		if ( IsDead )
+			return;
+
+		Health -= damage.Damage;
+
+		Log.Info( $"[DAMAGE] {GameObject.Name} took {damage.Damage} damage from {damage.Attacker?.Name}" );
+
+		if ( Health <= 0f )
+		{
+			Health = 0f;
+			OnKilled( damage );
+		}
+	}
+
+
+	public bool CanTakeDamage()
+	{
+		return !IsDead && Health > 0f;
+	}
+
+	public void Heal( float amount )
+	{
+		if ( IsDead )
+			return;
+
+		Health = MathF.Min( Health + amount, MaxHealth );
 	}
 
 	private void HandleDeathLookOnly()
@@ -102,8 +134,6 @@ public partial class OrionPlayerController : Component
 			Log.Info( "[PROGRESSION] Level 3 reached!" );
 		}
 
-		if ( Health <= 0 )
-			Die();
 
 		if ( Input.Pressed( "use" ) )
 			HandleInteraction();
@@ -218,7 +248,18 @@ public partial class OrionPlayerController : Component
 		}
 	}
 
+	public void OnKilled( in DamageInfo damage )
+	{
+		if ( IsDead )
+			return;
 
+		Log.Info( $"[DEATH] {GameObject.Name} killed by {damage.Attacker?.Name}" );
+
+		Die();
+	}
+
+	public bool IsLocalDead =>
+	IsDead && GameObject.Network.IsOwner;
 
 	public void Die()
 	{
@@ -228,6 +269,16 @@ public partial class OrionPlayerController : Component
 		TimeSinceDeath = 0f;
 		_deathLocation = Transform.World.Position;
 		_deathLookAngles = Transform.World.Rotation.Angles();
+
+		// ✅ HIDE ALL WEAPONS
+		foreach ( var weapon in Inventory )
+		{
+			if ( weapon.IsValid() )
+				weapon.SetVisible( false );
+		}
+
+		// Optional: clear active weapon
+		ActiveWeapon = null;
 
 		if ( RagdollPrefab.IsValid() )
 		{
