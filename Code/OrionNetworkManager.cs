@@ -33,7 +33,9 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 		if ( SpawnPoints is { Length: > 0 } && SpawnPoints[0].IsValid() )
 			spawnTransform = SpawnPoints[0].Transform.World;
 
-		var player = PlayerPrefab.Clone( spawnTransform );
+		// Inside OrionNetworkManager.cs -> OnActive
+		var player = PlayerPrefab.Clone(); // Clone first
+		player.Transform.World = spawnTransform; // Position second
 		player.NetworkSpawn( connection );
 	}
 }

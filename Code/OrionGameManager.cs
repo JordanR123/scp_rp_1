@@ -22,25 +22,20 @@ public class OrionGameManager : Component
 
 	public void SpawnPlayer( PlayerRole role )
 	{
-		// Find the local player controller in the scene
-		var player = Game.ActiveScene.GetAllComponents<OrionPlayerController>().FirstOrDefault();
+		var player = Game.ActiveScene.GetAllComponents<OrionPlayerController>()
+			.FirstOrDefault( x => !x.IsProxy && x.GameObject.Network.IsOwner );
 
 		if ( !player.IsValid() )
 		{
-			Log.Error( "SpawnPlayer: Could not find OrionPlayerController!" );
+			Log.Error( "SpawnPlayer: Could not find owned OrionPlayerController!" );
 			return;
 		}
 
-		// Assign the chosen role and update clearance levels
 		player.CurrentRole = role;
 		player.UpdateClearance();
 		player.UpdatePlayerVisuals();
-
-		// Initialize inventory: Start with Slot 0 (Fists) for everyone
-		// This prevents the 'Update' exception by ensuring ActiveWeapon isn't null
 		player.SetupLoadoutForRole();
 
-		// Determine the target transform based on the role
 		Transform target = role switch
 		{
 			PlayerRole.DClass => DBlockSpawn.Transform.World,
@@ -49,8 +44,8 @@ public class OrionGameManager : Component
 			_ => DBlockSpawn.Transform.World
 		};
 
-		// Teleport the player to the role-specific spawn point
 		player.Transform.World = target;
+		player.Network.ClearInterpolation();
 
 		Log.Info( $"[SPAWN] Player assigned to {role} and moved to sector." );
 	}

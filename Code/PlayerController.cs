@@ -20,11 +20,7 @@ public partial class OrionPlayerController : Component
 
 	// ASSIGN THESE 3 BODY OBJECTS IN THE INSPECTOR
 	// Each one should already have the correct clothing/model set up on it
-	[Property] public GameObject DClassBody { get; set; }
-	[Property] public GameObject GuardBody { get; set; }
-	[Property] public GameObject ResearcherBody { get; set; }
 	[Property] public CameraComponent PlayerCamera { get; set; }
-	[Property] public GameObject FirstPersonArms { get; set; }
 
 	[Property, Group( "Death" )] public GameObject RagdollPrefab { get; set; }
 
@@ -40,31 +36,23 @@ public partial class OrionPlayerController : Component
 	private Vector3 _deathLocation;
 	private Angles _deathLookAngles;
 
+	private float _yaw;
+	private float _pitch;
+
 	protected override void OnStart()
 	{
 		LoadGame();
 		UpdateClearance();
 		UpdatePlayerVisuals();
+
+		_yaw = GameObject.WorldRotation.Angles().yaw;
+		_pitch = 0f;
 	}
 
 	public void UpdatePlayerVisuals()
 	{
-		if ( DClassBody.IsValid() ) DClassBody.Enabled = false;
-		if ( GuardBody.IsValid() ) GuardBody.Enabled = false;
-		if ( ResearcherBody.IsValid() ) ResearcherBody.Enabled = false;
-
-		switch ( CurrentRole )
-		{
-			case PlayerRole.DClass:
-				if ( DClassBody.IsValid() ) DClassBody.Enabled = true;
-				break;
-			case PlayerRole.Guard:
-				if ( GuardBody.IsValid() ) GuardBody.Enabled = true;
-				break;
-			case PlayerRole.Researcher:
-				if ( ResearcherBody.IsValid() ) ResearcherBody.Enabled = true;
-				break;
-		}
+		// Intentionally empty for now.
+		// Role-specific body visuals will be added later.
 	}
 
 	private void HandleDeathLookOnly()
@@ -86,6 +74,9 @@ public partial class OrionPlayerController : Component
 
 	protected override void OnUpdate()
 	{
+		if ( IsProxy || !GameObject.Network.IsOwner )
+			return;
+
 		if ( IsDead )
 		{
 			TimeSinceDeath += Time.Delta;
@@ -93,15 +84,17 @@ public partial class OrionPlayerController : Component
 			return;
 		}
 
+		var look = Input.AnalogLook;
+
+
+
 		Experience += Time.Delta;
 
-		// Level 2 at 600 XP
 		if ( PlayerLevel == 1 && Experience >= 600f )
 		{
 			PlayerLevel = 2;
 			SaveGame();
 		}
-		// Level 3 at 1200 XP
 		else if ( PlayerLevel == 2 && Experience >= 1200f )
 		{
 			PlayerLevel = 3;
@@ -109,13 +102,13 @@ public partial class OrionPlayerController : Component
 			Log.Info( "[PROGRESSION] Level 3 reached!" );
 		}
 
-		if ( Health <= 0 ) Die();
+		if ( Health <= 0 )
+			Die();
 
-		if ( Input.Pressed( "use" ) ) HandleInteraction();
+		if ( Input.Pressed( "use" ) )
+			HandleInteraction();
 
-		// Handle Weapon Logic
 		HandleWeaponInputs();
-
 	}
 
 	public void SetupLoadoutForRole()
@@ -224,9 +217,6 @@ public partial class OrionPlayerController : Component
 			Log.Info( $"[EQUIP] {ActiveWeapon.WeaponName} model forced into view." );
 		}
 	}
-
-
-
 
 
 

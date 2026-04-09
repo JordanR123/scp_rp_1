@@ -3,7 +3,7 @@
     "__guid": "4a9bfda7-1f81-48f1-84e2-344be1f2dbcb",
     "__version": 2,
     "Flags": 0,
-    "Name": "Player Controller",
+    "Name": "player controller",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
@@ -37,7 +37,7 @@
         "BodyMass": 500,
         "BodyRadius": 16,
         "BrakePower": 1,
-        "CameraOffset": "256,0,12",
+        "CameraOffset": "0,0,0",
         "ColliderObject": {
           "_type": "gameobject",
           "go": "c3175f63-0960-41ce-ac81-9b450b548643"
@@ -178,7 +178,11 @@
           "go": "5820999e-bf8f-4e81-bc0e-1f8375af395f",
           "component_type": "SkinnedModelRenderer"
         },
-        "Clothing": [],
+        "Clothing": [
+          {
+            "Clothing": "clothing/dclass_jumpsuit.clothing"
+          }
+        ],
         "ManualAge": 0.5,
         "ManualHeight": 0.5,
         "ManualTint": 0.5,
@@ -198,14 +202,8 @@
         "__enabled": true,
         "Flags": 0,
         "ClearanceLevel": 0,
-        "CurrentRole": "Guard",
-        "DClassBody": null,
+        "CurrentRole": "DClass",
         "Experience": 1200,
-        "FirstPersonArms": {
-          "_type": "gameobject",
-          "go": "1ea53737-1d2a-43c4-837d-fff01bad3ed6"
-        },
-        "GuardBody": null,
         "Health": 100,
         "Inventory": [
           {
@@ -237,8 +235,7 @@
         "RagdollPrefab": {
           "_type": "gameobject",
           "prefab": "defaultragdoll.prefab"
-        },
-        "ResearcherBody": null
+        }
       }
     ],
     "Children": [
@@ -383,7 +380,7 @@
         "__version": 2,
         "Flags": 0,
         "Name": "Main Camera",
-        "Position": "0,0,0",
+        "Position": "0,0,60",
         "Rotation": "0,0,0,1",
         "Scale": "1,1,1",
         "Tags": "",
@@ -430,7 +427,7 @@
             "__version": 2,
             "Flags": 0,
             "Name": "Weapon_Fists",
-            "Position": "0,0,0",
+            "Position": "-2,0,-2",
             "Rotation": "0,0,0,1",
             "Scale": "1,1,1",
             "Tags": "",
@@ -648,7 +645,27 @@
           }
         ]
       }
-    ]
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
   },
   "ResourceVersion": 2,
   "ShowInMenu": false,
