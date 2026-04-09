@@ -16,8 +16,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property] public int PlayerLevel { get; set; } = 1;
 	[Property] public float Experience { get; set; } = 0f;
 	[Property] public float MaxHealth { get; set; } = 100f;
-	public float Health { get; set; } = 100f;
-	public bool IsDead { get; set; } = false;
+
+
+	[Sync( Flags = SyncFlags.FromHost )] public float Health { get; set; } = 100f;
+	[Sync( Flags = SyncFlags.FromHost )] public bool IsDead { get; set; } = false;
+
+
 	[Sync] public bool ShowXpPopup { get; set; }
 	[Sync] public bool HasChosenRole { get; set; } = false;
 	[Sync] public string XpPopupMessage { get; set; } = "";
@@ -133,6 +137,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public float TimeSinceDeath { get; set; } = 0f;
 	private Vector3 _deathLocation;
 	private Angles _deathLookAngles;
+	private GameObject _spawnedRagdoll;
 
 	private float _yaw;
 	private float _pitch;
@@ -262,7 +267,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				$"[ONDAMAGE KILL THRESHOLD] Target={GameObject.Name} reached 0 health. Calling OnKilled()."
 			);
 
-			SyncHealthState( Health, true );
 			OnKilled( damage );
 			return;
 		}
@@ -542,36 +546,43 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 
 		var damageable = tr.GameObject.Components.Get<Component.IDamageable>( FindMode.EverythingInSelfAndAncestors );
-		if ( damageable == null )
+
+		if ( damageable != null )
+		{
+			Log.Info(
+				$"[HOST APPLY DAMAGE] Shooter={GameObject.Name} -> HitObject={tr.GameObject.Name} | Damage={weapon.Damage}"
+			);
+
+			damageable.OnDamage( new DamageInfo()
+			{
+				Damage = weapon.Damage,
+				Attacker = GameObject,
+				Weapon = weapon.GameObject,
+				Position = tr.HitPosition,
+				Origin = origin
+			} );
+
+			if ( targetPlayer.IsValid() )
+			{
+				Log.Info(
+					$"[HOST DAMAGE APPLIED] Shooter={GameObject.Name} -> Target={targetPlayer.GameObject.Name} | " +
+					$"TargetHealthAfter={targetPlayer.Health} | TargetIsDead={targetPlayer.IsDead}"
+				);
+			}
+		}
+		else
 		{
 			Log.Warning(
 				$"[HOST DAMAGEABLE NOT FOUND] HitObject={tr.GameObject.Name} does not expose IDamageable in self/ancestors."
 			);
-			return;
 		}
 
 		Log.Info(
-			$"[HOST APPLY DAMAGE] Shooter={GameObject.Name} -> HitObject={tr.GameObject.Name} | Damage={weapon.Damage}"
+			$"[HOST IMPACT FX REQUEST] Shooter={GameObject.Name} | Weapon={weapon.WeaponName} | " +
+			$"HitObject={tr.GameObject?.Name} | HitPos={tr.HitPosition} | HitNormal={tr.Normal}"
 		);
 
-		damageable.OnDamage( new DamageInfo()
-		{
-			Damage = weapon.Damage,
-			Attacker = GameObject,
-			Weapon = weapon.GameObject,
-			Position = tr.HitPosition,
-			Origin = origin
-		} );
-
-		if ( targetPlayer.IsValid() )
-		{
-			Log.Info(
-				$"[HOST DAMAGE APPLIED] Shooter={GameObject.Name} -> Target={targetPlayer.GameObject.Name} | " +
-				$"TargetHealthAfter={targetPlayer.Health} | TargetIsDead={targetPlayer.IsDead}"
-			);
-		}
-
-		SpawnImpactEffects( tr.GameObject, tr.HitPosition, tr.Normal, slotIndex );
+		SpawnImpactEffects( tr.HitPosition, tr.Normal, slotIndex );
 	}
 
 	[Rpc.Broadcast]
@@ -591,20 +602,45 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 	[Rpc.Broadcast]
-	private void SpawnImpactEffects( GameObject hitObject, Vector3 hitPosition, Vector3 hitNormal, int slotIndex )
+	private void SpawnImpactEffects( Vector3 hitPosition, Vector3 hitNormal, int slotIndex )
 	{
+		Log.Info(
+			$"[IMPACT FX] Player={GameObject.Name} | Slot={slotIndex} | HitPos={hitPosition} | HitNormal={hitNormal}"
+		);
+
 		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+		{
+			Log.Warning( $"[IMPACT FX BLOCKED] Invalid slot {slotIndex}. InventoryCount={Inventory.Count}" );
 			return;
+		}
 
 		var weapon = Inventory[slotIndex];
-		if ( !weapon.IsValid() || !weapon.ImpactDecalPrefab.IsValid() || !hitObject.IsValid() )
+		if ( !weapon.IsValid() )
+		{
+			Log.Warning( $"[IMPACT FX BLOCKED] Weapon in slot {slotIndex} is invalid." );
 			return;
+		}
+
+		if ( !weapon.ImpactDecalPrefab.IsValid() )
+		{
+			Log.Warning( $"[IMPACT FX BLOCKED] Weapon={weapon.WeaponName} has no ImpactDecalPrefab assigned." );
+			return;
+		}
 
 		var decal = weapon.ImpactDecalPrefab.Clone();
-		decal.Parent = hitObject;
+		if ( !decal.IsValid() )
+		{
+			Log.Warning( $"[IMPACT FX BLOCKED] Failed to clone decal prefab for {weapon.WeaponName}." );
+			return;
+		}
+
 		decal.WorldPosition = hitPosition + hitNormal * 1.5f;
 		decal.WorldRotation = Rotation.LookAt( -hitNormal );
 		decal.WorldScale = Vector3.One;
+
+		Log.Info(
+			$"[IMPACT FX SPAWNED] Weapon={weapon.WeaponName} | Decal={decal.Name} | Position={decal.WorldPosition}"
+		);
 	}
 
 
@@ -650,12 +686,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			$"Health={Health} | IsDead={IsDead}"
 		);
 
-		if ( IsDead )
-		{
-			Log.Warning( $"[ONKILLED IGNORED] Target={GameObject.Name} already marked dead." );
-			return;
-		}
-
 		Log.Info( $"[ONKILLED EXECUTE] {GameObject.Name} killed by {damage.Attacker?.Name}" );
 
 		Die();
@@ -667,7 +697,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public void ForceSyncHealthState()
 	{
 		Log.Info(
-			$"[FORCE SYNC HEALTH STATE] Player={GameObject.Name} | Health={Health} | IsDead={IsDead}"
+			$"[FORCE SYNC HEALTH STATE] Player={GameObject.Name} | Health={Health} | IsDead={IsDead} | Position={GameObject.WorldPosition}"
 		);
 
 		SyncHealthState( Health, IsDead );
@@ -710,8 +740,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			Log.Info( $"[DIE RAGDOLL] Spawning ragdoll for {GameObject.Name} at {_deathLocation}" );
 
-			var ragdoll = RagdollPrefab.Clone( _deathLocation );
-			ragdoll.NetworkSpawn();
+			_spawnedRagdoll = RagdollPrefab.Clone( _deathLocation );
+			_spawnedRagdoll.WorldRotation = GameObject.WorldRotation;
+			_spawnedRagdoll.NetworkSpawn();
 		}
 		else
 		{
@@ -723,18 +754,39 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		);
 	}
 
+	public void DestroySpawnedRagdoll()
+	{
+		if ( _spawnedRagdoll.IsValid() )
+		{
+			Log.Info( $"[RAGDOLL CLEANUP] Destroying ragdoll for {GameObject.Name}" );
+			_spawnedRagdoll.Destroy();
+			_spawnedRagdoll = null;
+		}
+	}
+
 	public void Respawn()
 	{
+		if ( !GameObject.Network.IsOwner )
+			return;
+
+		Log.Info( $"[RESPAWN REQUEST] Player={GameObject.Name} requested respawn." );
+		RequestRespawnOnHost();
+	}
+
+	[Rpc.Host]
+	private void RequestRespawnOnHost()
+	{
+		Log.Info( $"[RESPAWN HOST] Processing respawn for {GameObject.Name}" );
+
 		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
 
 		if ( manager.IsValid() )
 		{
-			Log.Info( "[RESPAWN] Resetting existing player instance." );
 			manager.ResetPlayer( this );
 		}
 		else
 		{
-			Game.ActiveScene.Load( Game.ActiveScene.Source );
+			Log.Warning( "[RESPAWN HOST] No OrionGameManager found." );
 		}
 	}
 

@@ -49,17 +49,21 @@ public class OrionGameManager : Component
 		Log.Info( $"[SPAWN] {player.GameObject.Name} assigned to {role} and moved to sector." );
 	}
 
+
+
 	public void ResetPlayer( OrionPlayerController player )
 	{
 		if ( !player.IsValid() ) return;
 
 		Log.Info( $"[RESET] Relocating player: {player.GameObject.Name}" );
 
+		player.DestroySpawnedRagdoll();
+
 		// 1. Restore Stats
 		player.Health = player.MaxHealth;
 		player.IsDead = false;
 		player.TimeSinceDeath = 0f;
-		player.ForceSyncHealthState();
+		player.GameObject.Enabled = true;
 
 		// Reward 100 Experience on death
 		player.Experience += 100f;
@@ -90,7 +94,11 @@ public class OrionGameManager : Component
 		};
 
 		player.Transform.World = target;
+		player.Network.ClearInterpolation();
+		player.ForceSyncHealthState();
 		Log.Info( "[RESET] Player teleported and revived." );
+
+
 
 		// ADD THIS: Trigger save on respawn
 		player.UpdatePlayerVisuals();

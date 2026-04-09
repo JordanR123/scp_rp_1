@@ -440,7 +440,7 @@
             "Components": [
               {
                 "__type": "OrionWeapon",
-                "__guid": "3eea0aa1-d027-4f8c-a175-85def888c62f",
+                "__guid": "c61ad302-a9f2-45b9-b79e-58b83d1bd0cf",
                 "__enabled": true,
                 "Flags": 0,
                 "AttackTrigger": "b_attack",
@@ -455,13 +455,13 @@
                 "OnComponentFixedUpdate": null,
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
-                "Range": 100,
+                "Range": 150,
                 "ViewModel": {
                   "_type": "gameobject",
                   "go": "e2cc651d-4408-4811-bf82-188519630f60"
                 },
                 "ViewOffset": "0,0,0",
-                "WeaponName": "Fists"
+                "WeaponName": "Weapon"
               }
             ],
             "Children": [
@@ -509,7 +509,7 @@
             "Components": [
               {
                 "__type": "OrionWeapon",
-                "__guid": "d65e23b4-a138-4156-9ce3-1d081e697514",
+                "__guid": "24a412ee-7547-4ff1-9f0b-d7c4e1a36c48",
                 "__enabled": true,
                 "Flags": 0,
                 "AttackTrigger": "b_attack",
