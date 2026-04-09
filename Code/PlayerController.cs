@@ -18,6 +18,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property] public float MaxHealth { get; set; } = 100f;
 	[Sync] public float Health { get; set; } = 100f;
 	[Sync] public bool IsDead { get; set; } = false;
+	[Sync] public bool ShowXpPopup { get; set; }
+	[Sync] public string XpPopupMessage { get; set; } = "";
 	[Property] public int ClearanceLevel { get; set; } = 0;
 
 	// ASSIGN THESE 3 BODY OBJECTS IN THE INSPECTOR
@@ -32,9 +34,92 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public int CurrentSlot { get; set; } = 0;
 	public bool HasGun { get; set; } = false;
 
-	
-	public float TimeSinceDeath { get; set; } = 0f;
+	// XP System
+	private const float ResearcherXpGiftAmount = 100f;
+	private static readonly TimeSpan ResearcherXpCooldown = TimeSpan.FromMinutes( 5 );
+	private static readonly TimeSpan XpPopupDuration = TimeSpan.FromSeconds( 3 );
 
+	private DateTime _nextResearcherGiveXpUtc = DateTime.MinValue;
+	private DateTime _nextResearcherReceiveXpUtc = DateTime.MinValue;
+	private DateTime _xpPopupUntilUtc = DateTime.MinValue;
+
+	private bool CanReceiveResearcherXp =>
+	CurrentRole == PlayerRole.Guard || CurrentRole == PlayerRole.DClass;
+
+	private bool IsResearcherGiveReady =>
+		DateTime.UtcNow >= _nextResearcherGiveXpUtc;
+
+	private bool IsResearcherReceiveReady =>
+		DateTime.UtcNow >= _nextResearcherReceiveXpUtc;
+
+	private void StartResearcherGiveCooldown()
+	{
+		_nextResearcherGiveXpUtc = DateTime.UtcNow + ResearcherXpCooldown;
+	}
+
+	private void StartResearcherReceiveCooldown()
+	{
+		_nextResearcherReceiveXpUtc = DateTime.UtcNow + ResearcherXpCooldown;
+	}
+
+	private void ShowTimedXpPopup( string message )
+	{
+		XpPopupMessage = message;
+		ShowXpPopup = true;
+		_xpPopupUntilUtc = DateTime.UtcNow + XpPopupDuration;
+	}
+
+	private void UpdateXpPopup()
+	{
+		if ( ShowXpPopup && DateTime.UtcNow >= _xpPopupUntilUtc )
+		{
+			ShowXpPopup = false;
+			XpPopupMessage = "";
+		}
+	}
+
+	public bool TryGiveResearcherXpTo( OrionPlayerController target )
+	{
+		if ( target == null || !target.IsValid() )
+			return false;
+
+		if ( target == this )
+			return false;
+
+		if ( CurrentRole != PlayerRole.Researcher )
+			return false;
+
+		if ( !target.CanReceiveResearcherXp )
+			return false;
+
+		if ( !IsResearcherGiveReady )
+		{
+			ShowTimedXpPopup( "XP GIFT ON COOLDOWN" );
+			return false;
+		}
+
+		if ( !target.IsResearcherReceiveReady )
+		{
+			ShowTimedXpPopup( $"{target.CurrentRole.ToString().ToUpper()} ALREADY RECEIVED XP" );
+			return false;
+		}
+
+		target.Experience += ResearcherXpGiftAmount;
+
+		StartResearcherGiveCooldown();
+		target.StartResearcherReceiveCooldown();
+
+		ShowTimedXpPopup( $"YOU GAVE {target.CurrentRole.ToString().ToUpper()} 100 XP" );
+		target.ShowTimedXpPopup( $"RESEARCHER GAVE YOU 100 XP" );
+
+		target.SaveGame();
+		SaveGame();
+
+		Log.Info( $"[XP GIFT] {GameObject.Name} gave {ResearcherXpGiftAmount} XP to {target.GameObject.Name}" );
+		return true;
+	}
+
+	public float TimeSinceDeath { get; set; } = 0f;
 	private Vector3 _deathLocation;
 	private Angles _deathLookAngles;
 
@@ -89,10 +174,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private void HandleDeathLookOnly()
 	{
-		var cam = Components.GetInChildren<CameraComponent>( true );
-		if ( !cam.IsValid() ) return;
+		if ( !PlayerCamera.IsValid() )
+			return;
 
-		Vector3 basePos = _deathLocation + Vector3.Up * 64f;
+		// Keep the body locked where it died
+		GameObject.WorldPosition = _deathLocation;
+		GameObject.WorldRotation = Rotation.FromYaw( _deathLookAngles.yaw );
 
 		var lookDelta = Input.AnalogLook;
 
@@ -100,14 +187,16 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_deathLookAngles.pitch += lookDelta.pitch;
 		_deathLookAngles.pitch = _deathLookAngles.pitch.Clamp( -80f, 80f );
 
-		cam.WorldPosition = basePos;
-		cam.WorldRotation = Rotation.From( _deathLookAngles );
+		PlayerCamera.WorldPosition = _deathLocation + Vector3.Up * 64f;
+		PlayerCamera.WorldRotation = Rotation.From( _deathLookAngles );
 	}
 
 	protected override void OnUpdate()
 	{
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
+
+		UpdateXpPopup();
 
 		if ( IsDead )
 		{
@@ -138,7 +227,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( Input.Pressed( "use" ) )
 			HandleInteraction();
 
+		if ( Input.Pressed( "GiveXP" ) )
+			TryGiveXpFromLook();
+
 		HandleWeaponInputs();
+		
 	}
 
 	public void SetupLoadoutForRole()
@@ -267,18 +360,26 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		IsDead = true;
 		TimeSinceDeath = 0f;
-		_deathLocation = Transform.World.Position;
-		_deathLookAngles = Transform.World.Rotation.Angles();
 
-		// ✅ HIDE ALL WEAPONS
+		_deathLocation = GameObject.WorldPosition;
+
+		// Start dead-camera look from the actual camera, not body rotation
+		_deathLookAngles = PlayerCamera.IsValid()
+			? PlayerCamera.WorldRotation.Angles()
+			: GameObject.WorldRotation.Angles();
+
+		// Hide all weapons
 		foreach ( var weapon in Inventory )
 		{
 			if ( weapon.IsValid() )
 				weapon.SetVisible( false );
 		}
 
-		// Optional: clear active weapon
 		ActiveWeapon = null;
+
+		// Optional: disable movement component here if you have one on the player
+		// var mover = Components.Get<YourMovementComponent>();
+		// if ( mover.IsValid() ) mover.Enabled = false;
 
 		if ( RagdollPrefab.IsValid() )
 		{
@@ -302,27 +403,88 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
+	private void TryGiveXpFromLook()
+	{
+		Log.Info( "[GIVE XP] B pressed" );
+
+		if ( CurrentRole != PlayerRole.Researcher )
+		{
+			Log.Info( $"[GIVE XP] Not a researcher (Role: {CurrentRole})" );
+			return;
+		}
+
+		if ( !PlayerCamera.IsValid() )
+		{
+			Log.Warning( "[GIVE XP] PlayerCamera not assigned!" );
+			return;
+		}
+
+		var tr = Scene.Trace.Ray(
+				PlayerCamera.WorldPosition,
+				PlayerCamera.WorldPosition + PlayerCamera.WorldRotation.Forward * 150f )
+			.IgnoreGameObjectHierarchy( GameObject )
+			.Run();
+
+		// ❌ Case 1: hit nothing
+		if ( !tr.Hit )
+		{
+			Log.Info( "[GIVE XP] Hit nothing" );
+			return;
+		}
+
+		// Always log what we hit
+		Log.Info( $"[GIVE XP] Hit object: {tr.GameObject.Name}" );
+
+		var targetPlayer = tr.GameObject.Components.Get<OrionPlayerController>( FindMode.EverythingInSelfAndAncestors );
+
+		// ❌ Case 2: hit something but not a player
+		if ( !targetPlayer.IsValid() )
+		{
+			Log.Info( "[GIVE XP] Hit object is NOT a player" );
+			return;
+		}
+
+		// ✅ Case 3: hit a player
+		Log.Info( $"[GIVE XP] Hit PLAYER: {targetPlayer.GameObject.Name} (Role: {targetPlayer.CurrentRole})" );
+
+		// Optional: check if valid target role
+		if ( !targetPlayer.CanReceiveResearcherXp )
+		{
+			Log.Info( "[GIVE XP] Player cannot receive XP (wrong role)" );
+			return;
+		}
+
+		// Attempt XP transfer
+		var success = TryGiveResearcherXpTo( targetPlayer );
+
+		Log.Info( success
+			? "[GIVE XP] XP transfer SUCCESS"
+			: "[GIVE XP] XP transfer FAILED (cooldown or rules)" );
+	}
+
 	private void HandleInteraction()
 	{
-		// Use the direct reference instead of searching
 		if ( !PlayerCamera.IsValid() )
 		{
 			Log.Warning( "[INTERACT] PlayerCamera property is not assigned!" );
 			return;
 		}
 
-		var tr = Scene.Trace.Ray( PlayerCamera.WorldPosition, PlayerCamera.WorldPosition + PlayerCamera.WorldRotation.Forward * 150f )
+		var tr = Scene.Trace.Ray(
+				PlayerCamera.WorldPosition,
+				PlayerCamera.WorldPosition + PlayerCamera.WorldRotation.Forward * 150f )
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		if ( tr.Hit )
-		{
-			Log.Info( $"[INTERACT] Hit: {tr.GameObject.Name}" );
+		if ( !tr.Hit )
+			return;
 
-			if ( tr.GameObject.Components.Get<OrionDoor>( FindMode.EverythingInSelfAndAncestors ) is { } door )
-			{
-				door.OnUse( GameObject );
-			}
+		Log.Info( $"[INTERACT] Hit: {tr.GameObject.Name}" );
+
+		// Existing door interaction
+		if ( tr.GameObject.Components.Get<OrionDoor>( FindMode.EverythingInSelfAndAncestors ) is { } door )
+		{
+			door.OnUse( GameObject );
 		}
 	}
 

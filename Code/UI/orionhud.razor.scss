@@ -328,3 +328,26 @@
     font-size: 12px;
     font-weight: 800;
 }
+
+
+
+.xp-popup {
+    position: absolute;
+    top: 110px;
+    right: 18px;
+    min-width: 260px;
+    max-width: 420px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    background-color: rgba(22, 80, 48, 0.92);
+    border: 1px solid rgba(108, 214, 164, 0.45);
+    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.04);
+
+    label {
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        color: #d7ffe9;
+        text-transform: uppercase;
+    }
+}

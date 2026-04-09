@@ -47,6 +47,7 @@
             </div>
         </div>
 
+
         @if ( ShowDenied )
         {
             <div class="access-denied-popup">
@@ -56,30 +57,37 @@
         }
 
 
-
-        @if ( IsDead )
+        @if ( ShowXpGiftPopup )
 {
-    var p = GetPlayer(true);
-    var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
-
-    <div class="death-screen">
-        <div class="death-overlay">
-            <label class="death-title">TERMINATED</label>
-            <label class="death-sub">SUBJECT: @LocalName</label>
-
-            @if ( timeLeft > 0 )
-            {
-                <label class="death-sub">RESPAWN AVAILABLE IN @timeLeft</label>
-            }
-            else
-            {
-                <button class="respawn-button" @onclick=@(() => p?.Respawn())>
-                    RESPAWN NOW
-                </button>
-            }
-        </div>
+    <div class="xp-popup">
+        <label>@XpGiftPopupMessage</label>
     </div>
 }
+
+
+        @if ( IsDead )
+        {
+            var p = GetPlayer(true);
+            var timeLeft = Math.Max(0, (int)(10 - (p?.TimeSinceDeath ?? 0)));
+
+            <div class="death-screen">
+                <div class="death-overlay">
+                    <label class="death-title">TERMINATED</label>
+                    <label class="death-sub">SUBJECT: @LocalName</label>
+
+                    @if ( timeLeft > 0 )
+                    {
+                        <label class="death-sub">RESPAWN AVAILABLE IN @timeLeft</label>
+                    }
+                    else
+                    {
+                        <button class="respawn-button" @onclick=@(() => p?.Respawn())>
+                            RESPAWN NOW
+                        </button>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </root>
 
@@ -98,6 +106,9 @@
 
     bool IsDead => GetPlayer() == null && GetPlayer(true)?.IsDead == true;
     bool ShowDenied => GetHUDState().IsValid() && GetHUDState().ShowDenied;
+
+    bool ShowXpGiftPopup => GetPlayer(true)?.ShowXpPopup ?? false;
+    string XpGiftPopupMessage => GetPlayer(true)?.XpPopupMessage ?? "";
 
     string LocalName => Connection.Local?.DisplayName?.ToUpper() ?? "PLAYER";
     int Health => GetPlayer(true).IsValid() ? (int)GetPlayer(true).Health : 100;
