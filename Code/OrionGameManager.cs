@@ -59,6 +59,7 @@ public class OrionGameManager : Component
 		player.Health = player.MaxHealth;
 		player.IsDead = false;
 		player.TimeSinceDeath = 0f;
+		player.ForceSyncHealthState();
 
 		// Reward 100 Experience on death
 		player.Experience += 100f;

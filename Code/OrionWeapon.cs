@@ -23,29 +23,9 @@ public class OrionWeapon : Component
 		if ( !tr.Hit )
 			return;
 
-		// 1. Apply Damage
-		if ( tr.GameObject.IsValid() )
-		{
-			var damageable = tr.GameObject.Components.Get<Component.IDamageable>( FindMode.EverythingInSelfAndAncestors );
-
-			if ( damageable != null )
-			{
-				damageable.OnDamage( new DamageInfo()
-				{
-					Damage = Damage,
-					Attacker = owner,
-					Weapon = GameObject,
-					Position = tr.HitPosition,
-					Origin = owner.WorldPosition
-				} );
-			}
-		}
-
-		// 2. Spawn and Position the Decal
 		if ( ImpactDecalPrefab.IsValid() && tr.GameObject.IsValid() )
 		{
 			var decal = ImpactDecalPrefab.Clone();
-
 			decal.Parent = tr.GameObject;
 			decal.WorldPosition = tr.HitPosition + tr.Normal * 1.5f;
 			decal.WorldRotation = Rotation.LookAt( -tr.Normal );

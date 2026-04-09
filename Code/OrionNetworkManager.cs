@@ -14,9 +14,9 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 
 		Networking.CreateLobby( new LobbyConfig
 		{
-			MaxPlayers = 8,
+			MaxPlayers = 16,
 			Privacy = LobbyPrivacy.Public,
-			Name = "Orion"
+			Name = "Orion Networks SCP RP"
 		} );
 	}
 

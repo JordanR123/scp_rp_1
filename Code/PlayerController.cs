@@ -16,8 +16,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property] public int PlayerLevel { get; set; } = 1;
 	[Property] public float Experience { get; set; } = 0f;
 	[Property] public float MaxHealth { get; set; } = 100f;
-	[Sync] public float Health { get; set; } = 100f;
-	[Sync] public bool IsDead { get; set; } = false;
+	public float Health { get; set; } = 100f;
+	public bool IsDead { get; set; } = false;
 	[Sync] public bool ShowXpPopup { get; set; }
 	[Sync] public bool HasChosenRole { get; set; } = false;
 	[Sync] public string XpPopupMessage { get; set; } = "";
@@ -230,18 +230,44 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public void OnDamage( in DamageInfo damage )
 	{
-		if ( IsDead || damage.Damage <= 0f )
+		Log.Info(
+			$"[ONDAMAGE ENTER] Target={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
+			$"IncomingDamage={damage.Damage} | Attacker={damage.Attacker?.Name} | " +
+			$"HealthBefore={Health} | IsDead={IsDead}"
+		);
+
+		if ( IsDead )
+		{
+			Log.Warning( $"[ONDAMAGE IGNORED] Target={GameObject.Name} already dead." );
 			return;
+		}
+
+		if ( damage.Damage <= 0f )
+		{
+			Log.Warning( $"[ONDAMAGE IGNORED] Target={GameObject.Name} damage <= 0." );
+			return;
+		}
 
 		Health -= damage.Damage;
 
-		Log.Info( $"[DAMAGE] {GameObject.Name} took {damage.Damage} damage from {damage.Attacker?.Name}" );
+		Log.Info(
+			$"[ONDAMAGE APPLIED] Target={GameObject.Name} | Damage={damage.Damage} | HealthAfter={Health}"
+		);
 
 		if ( Health <= 0f )
 		{
 			Health = 0f;
+
+			Log.Warning(
+				$"[ONDAMAGE KILL THRESHOLD] Target={GameObject.Name} reached 0 health. Calling OnKilled()."
+			);
+
+			SyncHealthState( Health, true );
 			OnKilled( damage );
+			return;
 		}
+
+		SyncHealthState( Health, false );
 	}
 
 
@@ -355,7 +381,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				break;
 		}
 
-		Log.Info( $"[LOADOUT] Role: {CurrentRole}, HasGun: {HasGun}" );
+		var slot0Name = Inventory.Count > 0 && Inventory[0].IsValid() ? Inventory[0].WeaponName : "NULL";
+		var slot1Name = Inventory.Count > 1 && Inventory[1].IsValid() ? Inventory[1].WeaponName : "NULL";
+
+		Log.Info(
+			$"[LOADOUT] Player={GameObject.Name} | Role={CurrentRole} | HasGun={HasGun} | " +
+			$"InventoryCount={Inventory.Count} | Slot0={slot0Name} | Slot1={slot1Name}"
+		);
 	}
 
 
@@ -398,30 +430,185 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			}
 		}
 
-		// Updated Attack logic
 		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() && PlayerCamera.IsValid() )
 		{
-			if ( ActiveWeapon.ViewModel.IsValid() )
-			{
-				var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
-				if ( renderer.IsValid() )
-				{
-					renderer.Set( ActiveWeapon.AttackTrigger, true );
-				}
-			}
+			Log.Info(
+				$"[CLIENT ATTACK INPUT] Player={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
+				$"Weapon={ActiveWeapon.WeaponName} | Slot={CurrentSlot} | HasGun={HasGun} | " +
+				$"Origin={PlayerCamera.WorldPosition} | Forward={PlayerCamera.WorldRotation.Forward}"
+			);
 
-			var ray = new Ray( PlayerCamera.WorldPosition, PlayerCamera.WorldRotation.Forward );
+			PlayAttackEffects();
 
-			var tr = Scene.Trace.Ray( ray, ActiveWeapon.Range )
-				.IgnoreGameObjectHierarchy( GameObject )
-				.UsePhysicsWorld()
-				.Run();
-
-			Log.Info( $"[ATTACK] Weapon={ActiveWeapon.WeaponName}, Hit={tr.Hit}, Target={tr.GameObject?.Name}" );
-
-			ActiveWeapon.Fire( tr, GameObject );
+			RequestFireOnHost(
+				PlayerCamera.WorldPosition,
+				PlayerCamera.WorldRotation.Forward,
+				CurrentSlot
+			);
 		}
 	}
+
+	[Rpc.Broadcast]
+	private void PlayAttackEffects()
+	{
+		if ( !ActiveWeapon.IsValid() || !ActiveWeapon.ViewModel.IsValid() )
+			return;
+
+		var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
+		if ( renderer.IsValid() )
+		{
+			renderer.Set( ActiveWeapon.AttackTrigger, true );
+		}
+	}
+
+	[Rpc.Host]
+	private void RequestFireOnHost( Vector3 origin, Vector3 direction, int slotIndex )
+	{
+		Log.Info(
+			$"[HOST FIRE RPC RECEIVED] Shooter={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
+			$"Slot={slotIndex} | Origin={origin} | Direction={direction}"
+		);
+
+		if ( IsDead )
+		{
+			Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} is dead." );
+			return;
+		}
+
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+		{
+			Log.Warning(
+				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} sent invalid slot {slotIndex}. InventoryCount={Inventory.Count}"
+			);
+			return;
+		}
+
+		var weapon = Inventory[slotIndex];
+		if ( !weapon.IsValid() )
+		{
+			Log.Warning(
+				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} has invalid weapon in slot {slotIndex}."
+			);
+			return;
+		}
+
+		Log.Info(
+			$"[HOST FIRE WEAPON CHECK] Shooter={GameObject.Name} | Weapon={weapon.WeaponName} | " +
+			$"Damage={weapon.Damage} | Range={weapon.Range} | HasGun={HasGun}"
+		);
+
+		// If slot 1 is gun, make sure the player really has it.
+		if ( slotIndex == 1 && !HasGun )
+		{
+			Log.Warning(
+				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} tried to use gun slot without HasGun=true."
+			);
+			return;
+		}
+
+		var ray = new Ray( origin, direction );
+
+		var tr = Scene.Trace.Ray( ray, weapon.Range )
+			.IgnoreGameObjectHierarchy( GameObject )
+			.UsePhysicsWorld()
+			.Run();
+
+		Log.Info(
+			$"[HOST TRACE RESULT] Shooter={GameObject.Name} | Weapon={weapon.WeaponName} | " +
+			$"Hit={tr.Hit} | HitObject={tr.GameObject?.Name} | HitPos={tr.HitPosition} | Normal={tr.Normal}"
+		);
+
+		if ( !tr.Hit || !tr.GameObject.IsValid() )
+		{
+			Log.Warning(
+				$"[HOST TRACE MISS] Shooter={GameObject.Name} | Weapon={weapon.WeaponName} | No valid hit object."
+			);
+			return;
+		}
+
+		var targetPlayer = tr.GameObject.Components.Get<OrionPlayerController>( FindMode.EverythingInSelfAndAncestors );
+		if ( targetPlayer.IsValid() )
+		{
+			Log.Info(
+				$"[HOST TARGET PLAYER FOUND] Shooter={GameObject.Name} -> Target={targetPlayer.GameObject.Name} | " +
+				$"TargetHealthBefore={targetPlayer.Health} | TargetIsDead={targetPlayer.IsDead}"
+			);
+		}
+		else
+		{
+			Log.Warning(
+				$"[HOST TARGET PLAYER NOT FOUND] HitObject={tr.GameObject.Name} has no OrionPlayerController in self/ancestors."
+			);
+		}
+
+		var damageable = tr.GameObject.Components.Get<Component.IDamageable>( FindMode.EverythingInSelfAndAncestors );
+		if ( damageable == null )
+		{
+			Log.Warning(
+				$"[HOST DAMAGEABLE NOT FOUND] HitObject={tr.GameObject.Name} does not expose IDamageable in self/ancestors."
+			);
+			return;
+		}
+
+		Log.Info(
+			$"[HOST APPLY DAMAGE] Shooter={GameObject.Name} -> HitObject={tr.GameObject.Name} | Damage={weapon.Damage}"
+		);
+
+		damageable.OnDamage( new DamageInfo()
+		{
+			Damage = weapon.Damage,
+			Attacker = GameObject,
+			Weapon = weapon.GameObject,
+			Position = tr.HitPosition,
+			Origin = origin
+		} );
+
+		if ( targetPlayer.IsValid() )
+		{
+			Log.Info(
+				$"[HOST DAMAGE APPLIED] Shooter={GameObject.Name} -> Target={targetPlayer.GameObject.Name} | " +
+				$"TargetHealthAfter={targetPlayer.Health} | TargetIsDead={targetPlayer.IsDead}"
+			);
+		}
+
+		SpawnImpactEffects( tr.GameObject, tr.HitPosition, tr.Normal, slotIndex );
+	}
+
+	[Rpc.Broadcast]
+	private void SyncHealthState( float health, bool isDead )
+	{
+		Log.Info(
+			$"[SYNC HEALTH STATE] Player={GameObject.Name} | IncomingHealth={health} | IncomingIsDead={isDead} | " +
+			$"LocalBeforeHealth={Health} | LocalBeforeIsDead={IsDead}"
+		);
+
+		Health = health;
+		IsDead = isDead;
+
+		Log.Info(
+			$"[SYNC HEALTH STATE APPLIED] Player={GameObject.Name} | Health={Health} | IsDead={IsDead}"
+		);
+	}
+
+	[Rpc.Broadcast]
+	private void SpawnImpactEffects( GameObject hitObject, Vector3 hitPosition, Vector3 hitNormal, int slotIndex )
+	{
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+			return;
+
+		var weapon = Inventory[slotIndex];
+		if ( !weapon.IsValid() || !weapon.ImpactDecalPrefab.IsValid() || !hitObject.IsValid() )
+			return;
+
+		var decal = weapon.ImpactDecalPrefab.Clone();
+		decal.Parent = hitObject;
+		decal.WorldPosition = hitPosition + hitNormal * 1.5f;
+		decal.WorldRotation = Rotation.LookAt( -hitNormal );
+		decal.WorldScale = Vector3.One;
+	}
+
+
+
 
 	public void EquipWeapon( int slotIndex )
 	{
@@ -458,10 +645,18 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public void OnKilled( in DamageInfo damage )
 	{
-		if ( IsDead )
-			return;
+		Log.Info(
+			$"[ONKILLED ENTER] Target={GameObject.Name} | Attacker={damage.Attacker?.Name} | " +
+			$"Health={Health} | IsDead={IsDead}"
+		);
 
-		Log.Info( $"[DEATH] {GameObject.Name} killed by {damage.Attacker?.Name}" );
+		if ( IsDead )
+		{
+			Log.Warning( $"[ONKILLED IGNORED] Target={GameObject.Name} already marked dead." );
+			return;
+		}
+
+		Log.Info( $"[ONKILLED EXECUTE] {GameObject.Name} killed by {damage.Attacker?.Name}" );
 
 		Die();
 	}
@@ -469,21 +664,40 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public bool IsLocalDead =>
 	IsDead && GameObject.Network.IsOwner;
 
+	public void ForceSyncHealthState()
+	{
+		Log.Info(
+			$"[FORCE SYNC HEALTH STATE] Player={GameObject.Name} | Health={Health} | IsDead={IsDead}"
+		);
+
+		SyncHealthState( Health, IsDead );
+	}
+
+
+
+
 	public void Die()
 	{
-		if ( IsDead ) return;
+		Log.Info(
+			$"[DIE ENTER] Player={GameObject.Name} | Health={Health} | IsDead={IsDead} | OwnerId={GameObject.Network.OwnerId}"
+		);
+
+		if ( IsDead )
+		{
+			Log.Warning( $"[DIE IGNORED] Player={GameObject.Name} already dead." );
+			return;
+		}
 
 		IsDead = true;
+		SyncHealthState( Health, true );
 		TimeSinceDeath = 0f;
 
 		_deathLocation = GameObject.WorldPosition;
 
-		// Start dead-camera look from the actual camera, not body rotation
 		_deathLookAngles = PlayerCamera.IsValid()
 			? PlayerCamera.WorldRotation.Angles()
 			: GameObject.WorldRotation.Angles();
 
-		// Hide all weapons
 		foreach ( var weapon in Inventory )
 		{
 			if ( weapon.IsValid() )
@@ -492,15 +706,21 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		ActiveWeapon = null;
 
-		// Optional: disable movement component here if you have one on the player
-		// var mover = Components.Get<YourMovementComponent>();
-		// if ( mover.IsValid() ) mover.Enabled = false;
-
 		if ( RagdollPrefab.IsValid() )
 		{
+			Log.Info( $"[DIE RAGDOLL] Spawning ragdoll for {GameObject.Name} at {_deathLocation}" );
+
 			var ragdoll = RagdollPrefab.Clone( _deathLocation );
 			ragdoll.NetworkSpawn();
 		}
+		else
+		{
+			Log.Warning( $"[DIE RAGDOLL MISSING] No RagdollPrefab assigned for {GameObject.Name}" );
+		}
+
+		Log.Info(
+			$"[DIE COMPLETE] Player={GameObject.Name} | Health={Health} | IsDead={IsDead}"
+		);
 	}
 
 	public void Respawn()
