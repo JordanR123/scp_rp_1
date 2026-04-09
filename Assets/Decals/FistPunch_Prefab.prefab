@@ -1,0 +1,82 @@
+{
+  "RootObject": {
+    "__guid": "af3a7601-1104-42a1-86a6-69705ef8bf43",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "fistpunch_prefab",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "",
+    "Enabled": true,
+    "NetworkMode": 2,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 0,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Sandbox.Decal",
+        "__guid": "996c4275-73b7-421a-84c9-002abe11e9a3",
+        "__enabled": true,
+        "Flags": 0,
+        "__version": 3,
+        "AttenuationAngle": 1,
+        "ColorMix": 1,
+        "ColorTint": "1,1,1,1",
+        "Decals": [
+          "decals/punchdecal.decal"
+        ],
+        "Depth": 8,
+        "LifeTime": 0,
+        "Looped": false,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "Parallax": 1,
+        "Rotation": {
+          "Type": "Range",
+          "Evaluation": "Seed",
+          "Constants": "0,360,0,0"
+        },
+        "Scale": 1,
+        "SequenceId": 0,
+        "SheetSequence": false,
+        "Size": "2,2",
+        "SortLayer": 0,
+        "Transient": false
+      }
+    ],
+    "Children": [],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [],
+  "__version": 2
+}

@@ -204,7 +204,6 @@
         "ClearanceLevel": 0,
         "CurrentRole": "DClass",
         "Experience": 1200,
-        "Health": 100,
         "Inventory": [
           {
             "_type": "component",
@@ -219,6 +218,7 @@
             "component_type": "OrionWeapon"
           }
         ],
+        "MaxHealth": 100,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,
         "OnComponentEnabled": null,
@@ -444,12 +444,18 @@
                 "__enabled": true,
                 "Flags": 0,
                 "AttackTrigger": "b_attack",
+                "Damage": 10,
+                "ImpactDecalPrefab": {
+                  "_type": "gameobject",
+                  "prefab": "decals/fistpunch_prefab.prefab"
+                },
                 "OnComponentDestroy": null,
                 "OnComponentDisabled": null,
                 "OnComponentEnabled": null,
                 "OnComponentFixedUpdate": null,
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
+                "Range": 150,
                 "ViewModel": {
                   "_type": "gameobject",
                   "go": "e2cc651d-4408-4811-bf82-188519630f60"
@@ -507,12 +513,18 @@
                 "__enabled": true,
                 "Flags": 0,
                 "AttackTrigger": "b_attack",
+                "Damage": 10,
+                "ImpactDecalPrefab": {
+                  "_type": "gameobject",
+                  "prefab": "decals/bullethole_prefab.prefab"
+                },
                 "OnComponentDestroy": null,
                 "OnComponentDisabled": null,
                 "OnComponentEnabled": null,
                 "OnComponentFixedUpdate": null,
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
+                "Range": 150,
                 "ViewModel": {
                   "_type": "gameobject",
                   "go": "48843790-c7ae-4fb4-b0ee-d9da1a5d2a44"

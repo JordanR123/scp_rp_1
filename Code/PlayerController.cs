@@ -297,14 +297,29 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			}
 		}
 
-		// Attack logic
-		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() && ActiveWeapon.ViewModel.IsValid() )
+		// Updated Attack logic
+		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() )
 		{
-			var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
-			if ( renderer.IsValid() )
+			// 1. Run the Animation
+			if ( ActiveWeapon.ViewModel.IsValid() )
 			{
-				renderer.Set( ActiveWeapon.AttackTrigger, true );
+				var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
+				if ( renderer.IsValid() )
+				{
+					renderer.Set( ActiveWeapon.AttackTrigger, true );
+				}
 			}
+
+			var ray = new Ray( PlayerCamera.WorldPosition, PlayerCamera.WorldRotation.Forward );
+
+			// 2. Perform the Trace (The "Bullet" or "Punch")
+			var tr = Scene.Trace.Ray( ray, ActiveWeapon.Range )
+		.	IgnoreGameObjectHierarchy( GameObject ) // Prevents hitting your own body/arms
+	.		UsePhysicsWorld()
+			.Run();
+
+			// 3. Tell the weapon to process the hit
+			ActiveWeapon.Fire( tr, GameObject );
 		}
 	}
 
