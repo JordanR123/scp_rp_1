@@ -17,6 +17,25 @@
     bottom: 0px;
 }
 
+.damage-vignette {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    pointer-events: none;
+    background-color: transparent;
+    border-top-width: 18px;
+    border-right-width: 18px;
+    border-bottom-width: 18px;
+    border-left-width: 18px;
+    border-top-color: rgba(140, 0, 0, 0.95);
+    border-right-color: rgba(140, 0, 0, 0.95);
+    border-bottom-color: rgba(140, 0, 0, 0.95);
+    border-left-color: rgba(140, 0, 0, 0.95);
+    opacity: 0;
+}
+
 .top-bar {
     position: absolute;
     top: 18px;

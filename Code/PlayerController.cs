@@ -451,6 +451,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 
 		Health -= damage.Damage;
+		NotifyTookDamage();
 
 		Log.Info(
 			$"[ONDAMAGE APPLIED] Target={GameObject.Name} | Damage={damage.Damage} | HealthAfter={Health}"
@@ -964,6 +965,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			GameObject.PlaySound( HitSound );
 		}
+	}
+
+
+	[Rpc.Owner]
+	public void NotifyTookDamage()
+	{
+		TimeSinceLastHit = 0;
 	}
 
 

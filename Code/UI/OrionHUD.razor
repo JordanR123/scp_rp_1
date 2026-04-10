@@ -1,4 +1,4 @@
-@using Sandbox
+﻿@using Sandbox
 @using Sandbox.UI
 @using System.Linq
 @using System;
@@ -7,6 +7,7 @@
 <root style="pointer-events: @(IsDead ? "all" : "none")">
     <div class="hud-root @(IsDead ? "is-dead" : "")">
 
+        <div class="damage-vignette" @ref="DamageVignette"></div>
 
         <div class="crosshair-dot"></div>
 
@@ -114,6 +115,7 @@
 </root>
 
 @code {
+
 private OrionPlayerController GetLocalPlayer()
     {
         return Scene.GetAllComponents<OrionPlayerController>()
@@ -122,7 +124,61 @@ private OrionPlayerController GetLocalPlayer()
 
 private OrionPlayerController LocalPlayer => GetLocalPlayer();
 
+
+
 float TimeSinceHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastHit : 100f;
+Panel DamageVignette;
+
+
+float HealthFraction
+{
+	get
+	{
+		if ( !LocalPlayer.IsValid() || LocalPlayer.MaxHealth <= 0f )
+			return 1f;
+
+		return Math.Clamp( LocalPlayer.Health / LocalPlayer.MaxHealth, 0f, 1f );
+	}
+}
+
+float LowHealthAmount => 1f - HealthFraction;
+
+float DamagePulseAmount
+{
+	get
+	{
+		if ( !LocalPlayer.IsValid() )
+			return 0f;
+
+		const float pulseDuration = 0.45f;
+		return 1f - Math.Clamp( TimeSinceHit / pulseDuration, 0f, 1f );
+	}
+}
+
+void UpdateDamageVignette()
+{
+	if ( DamageVignette is null || !DamageVignette.IsValid() )
+		return;
+
+	if ( !LocalPlayer.IsValid() )
+	{
+		DamageVignette.Style.Opacity = 0f;
+		return;
+	}
+
+	float baseOpacity = LowHealthAmount * 0.75f;
+	float pulseOpacity = DamagePulseAmount * 0.65f;
+	float finalOpacity = Math.Clamp( baseOpacity + pulseOpacity, 0f, 1f );
+
+	// Make the red border thicker as health gets lower
+	float borderThickness = 18f + (LowHealthAmount * 90f);
+
+	DamageVignette.Style.Opacity = finalOpacity;
+	DamageVignette.Style.BorderTopWidth = borderThickness;
+	DamageVignette.Style.BorderBottomWidth = borderThickness;
+	DamageVignette.Style.BorderLeftWidth = borderThickness;
+	DamageVignette.Style.BorderRightWidth = borderThickness;
+}
 
 
 protected override int BuildHash()
@@ -132,7 +188,10 @@ protected override int BuildHash()
 		LocalPlayer?.CurrentSlot ?? -1,
 		LocalPlayer?.CurrentAmmo ?? 0,
 		LocalPlayer?.CurrentMagazineSize ?? 0,
-        LocalPlayer?.TimeSinceLastHit ?? 0
+		LocalPlayer?.TimeSinceLastHit ?? 0f,
+		LocalPlayer?.Health ?? 100f,
+		LocalPlayer?.MaxHealth ?? 100f,
+		LocalPlayer?.IsDead ?? false
 	);
 }
 
@@ -200,6 +259,7 @@ protected override int BuildHash()
 
     protected override void OnUpdate()
     {
+        UpdateDamageVignette();
         StateHasChanged();
 
         var state = GetHUDState();
