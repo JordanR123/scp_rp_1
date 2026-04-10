@@ -1848,6 +1848,10 @@
                 "_type": "gameobject",
                 "prefab": "roleselectpanel.prefab"
               },
+              "SpawnRoomLocation": {
+                "_type": "gameobject",
+                "go": "10c7e1c7-4694-459f-bb87-b498b4043107"
+              },
               "SurfaceSpawn": {
                 "_type": "gameobject",
                 "go": "94f6ce78-89f9-4644-8989-0dd4e6e6da70"
@@ -1982,7 +1986,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "df09212b-74a3-47d2-98ed-6d3b8fb41d43"
+          "$blob": "10d8ca7e-6032-4771-b0ee-48d465753c04"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

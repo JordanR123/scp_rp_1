@@ -10,6 +10,10 @@ public class PlayerData
 	public float Experience { get; set; }
 }
 
+
+
+
+
 public partial class OrionPlayerController : Component, Component.IDamageable
 {
 	[Property] public PlayerRole CurrentRole { get; set; } = PlayerRole.DClass;
@@ -25,7 +29,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Sync] public bool ShowXpPopup { get; set; }
 	[Sync] public bool HasChosenRole { get; set; } = false;
 	[Sync] public string XpPopupMessage { get; set; } = "";
+	[Sync] public Angles NetworkLookAngles { get; set; }
+	[Sync] public Vector3 NetworkEyePosition { get; set; }
 	[Property] public int ClearanceLevel { get; set; } = 0;
+
+	[Sync] public bool IsInvincible { get; set; }
+
+	private TimeUntil _invincibleTimer;
 
 	// ASSIGN THESE 3 BODY OBJECTS IN THE INSPECTOR
 	// Each one should already have the correct clothing/model set up on it
@@ -47,8 +57,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	// Weapon System
 	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
 	public OrionWeapon ActiveWeapon { get; set; }
-	public int CurrentSlot { get; set; } = 0;
-	public bool HasGun { get; set; } = false;
+	[Sync] public int CurrentSlot { get; set; } = 0;
+	[Sync] public bool HasGun { get; set; } = false;
 
 	[Sync( Flags = SyncFlags.FromHost )] public int AmmoInMagazine { get; set; } = 30;
 	[Sync( Flags = SyncFlags.FromHost )] public bool IsReloading { get; set; } = false;
@@ -58,13 +68,18 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	private TimeUntil _reloadTimer;
 
 
-	private OrionWeapon GetGunWeapon()
+	private OrionWeapon GetWeaponInSlot( int slot )
 	{
-		if ( Inventory.Count <= 1 )
+		if ( slot < 0 || slot >= Inventory.Count )
 			return null;
 
-		var weapon = Inventory[1];
+		var weapon = Inventory[slot];
 		return weapon.IsValid() ? weapon : null;
+	}
+
+	private OrionWeapon GetGunWeapon()
+	{
+		return GetWeaponInSlot( 1 );
 	}
 
 	private void FillMagazineFromWeapon()
@@ -76,16 +91,22 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
-	private void StartReload()
+	private void StartReloadHost( int slotIndex )
 	{
-		if ( !HasGun || CurrentSlot != 1 )
+		if ( !Networking.IsHost )
 			return;
 
-		var gun = GetGunWeapon();
+		if ( IsDead || IsReloading )
+			return;
+
+		if ( slotIndex != 1 )
+			return;
+
+		if ( !HasGun )
+			return;
+
+		var gun = GetWeaponInSlot( slotIndex );
 		if ( !gun.IsValid() )
-			return;
-
-		if ( IsReloading )
 			return;
 
 		if ( AmmoInMagazine >= gun.MagazineSize )
@@ -94,11 +115,14 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		IsReloading = true;
 		_reloadTimer = ReloadTime;
 
-		Log.Info( $"[RELOAD START] Player={GameObject.Name}" );
+		Log.Info( $"[RELOAD START HOST] Player={GameObject.Name} | Ammo={AmmoInMagazine}/{gun.MagazineSize}" );
 	}
 
 	private void UpdateReload()
 	{
+		if ( !Networking.IsHost )
+			return;
+
 		if ( !IsReloading )
 			return;
 
@@ -108,7 +132,24 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		IsReloading = false;
 		FillMagazineFromWeapon();
 
-		Log.Info( $"[RELOAD COMPLETE] Player={GameObject.Name} | Ammo={AmmoInMagazine}" );
+		Log.Info( $"[RELOAD COMPLETE HOST] Player={GameObject.Name} | Ammo={AmmoInMagazine}" );
+	}
+
+	[Rpc.Host]
+	private void RequestReloadOnHost( int slotIndex )
+	{
+		StartReloadHost( slotIndex );
+	}
+
+	public void StartInvincibility( float duration )
+	{
+		if ( IsProxy )
+			return;
+
+		IsInvincible = true;
+		_invincibleTimer = duration;
+
+		Log.Info( $"[INVINCIBILITY] {GameObject.Name} for {duration}s" );
 	}
 
 
@@ -215,6 +256,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_yaw = GameObject.WorldRotation.Angles().yaw;
 		_pitch = 0f;
 
+		NetworkLookAngles = new Angles( _pitch, _yaw, 0f );
+		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * 64f;
+
 		RefreshLocalOwnershipState();
 
 		if ( GameObject.Network.IsOwner && !HasChosenRole )
@@ -307,6 +351,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			$"HealthBefore={Health} | IsDead={IsDead}"
 		);
 
+		if ( IsInvincible )
+		{
+			Log.Info( $"[DAMAGE BLOCKED - INVINCIBLE] {GameObject.Name}" );
+			return;
+		}
+
+
 		if ( IsDead )
 		{
 			Log.Warning( $"[ONDAMAGE IGNORED] Target={GameObject.Name} already dead." );
@@ -375,8 +426,24 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	protected override void OnUpdate()
 	{
+
+		// Host-authoritative timers/simulation.
+		// This MUST run even when the host does not own this pawn.
+		if ( Networking.IsHost )
+		{
+			UpdateReload();
+
+			if ( IsInvincible && _invincibleTimer <= 0f )
+			{
+				IsInvincible = false;
+				Log.Info( $"[INVINCIBILITY END] {GameObject.Name}" );
+			}
+		}
+
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
+
+
 
 		UpdateXpPopup();
 
@@ -384,6 +451,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			TimeSinceDeath += Time.Delta;
 			HandleDeathLookOnly();
+
+			NetworkLookAngles = _deathLookAngles;
+			NetworkEyePosition = _deathLocation + Vector3.Up * 64f;
 			return;
 		}
 
@@ -393,6 +463,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_pitch = _pitch.Clamp( -80f, 80f );
 
 		UpdateLivingCamera();
+
+		NetworkLookAngles = new Angles( _pitch, _yaw, 0f );
+		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * 64f;
 
 		Experience += Time.Delta;
 
@@ -421,14 +494,31 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	}
 
+	private TimeUntil _respawnFireLock;
+
+	public void ResetLookAfterRespawn()
+	{
+		var angles = GameObject.WorldRotation.Angles();
+
+		_yaw = angles.yaw;
+		_pitch = 0f;
+
+		_deathLookAngles = new Angles( _pitch, _yaw, 0f );
+		NetworkLookAngles = _deathLookAngles;
+		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * 64f;
+
+		UpdateLivingCamera();
+		_respawnFireLock = 0.05f;
+	}
+
 
 	private void UpdateLivingCamera()
 	{
-		if ( !PlayerCamera.IsValid() )
-			return;
+		if ( !PlayerCamera.IsValid() ) return;
 
 		PlayerCamera.WorldPosition = GameObject.WorldPosition + Vector3.Up * 64f;
-		PlayerCamera.WorldRotation = Rotation.From( new Angles( _pitch, _yaw, 0f ) );
+		// Correct way to combine angles for a stable forward vector:
+		PlayerCamera.WorldRotation = Rotation.FromYaw( _yaw ) * Rotation.FromPitch( _pitch );
 	}
 
 
@@ -494,6 +584,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private void HandleWeaponInputs()
 	{
+		if ( _respawnFireLock > 0f )
+			return;
+
 		// Slot 1 = fists, always allowed
 		if ( Input.Pressed( "Slot1" ) )
 			EquipWeapon( 0 );
@@ -522,9 +615,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			}
 		}
 
+
+
 		if ( Input.Pressed( "Reload" ) )
 		{
-			StartReload();
+			RequestReloadOnHost( CurrentSlot );
+
 		}
 
 		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() && PlayerCamera.IsValid() )
@@ -540,7 +636,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 				if ( AmmoInMagazine <= 0 )
 				{
-					StartReload();
+					RequestReloadOnHost( CurrentSlot );
 					return;
 				}
 			}
@@ -553,9 +649,19 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 			PlayAttackEffects();
 
+			UpdateLivingCamera();
+
+			var fireOrigin = PlayerCamera.WorldPosition;
+			var fireDirection = PlayerCamera.WorldRotation.Forward;
+
+			var screenCenterRay = PlayerCamera.ScreenNormalToRay( 0.5f ); // The mathematical center of the screen
+			Log.Info( $"[DEBUG] Screen Center Forward: {screenCenterRay.Forward}" );
+			Log.Info( $"[DEBUG] Camera Component Forward: {PlayerCamera.WorldRotation.Forward}" );
+			Log.Info( $"[DEBUG] Calculated Pitch/Yaw Forward: {(Rotation.FromYaw( _yaw ) * Rotation.FromPitch( _pitch )).Forward}" );
+
 			RequestFireOnHost(
-				PlayerCamera.WorldPosition,
-				PlayerCamera.WorldRotation.Forward,
+				fireOrigin,
+				fireDirection,
 				CurrentSlot
 			);
 		}
@@ -588,6 +694,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 	[Rpc.Host]
+	private void RequestReloadOnHost()
+	{
+		StartReloadHost( CurrentSlot );
+	}
+
+	[Rpc.Host]
 	private void RequestFireOnHost( Vector3 origin, Vector3 direction, int slotIndex )
 	{
 		Log.Info(
@@ -604,14 +716,30 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				return;
 			}
 
+			if ( !HasGun )
+			{
+				Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} has no gun." );
+				return;
+			}
+
+			var gun = GetWeaponInSlot( slotIndex );
+			if ( !gun.IsValid() )
+				return;
+
 			if ( AmmoInMagazine <= 0 )
 			{
 				Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} has empty magazine." );
+				StartReloadHost( slotIndex );
 				return;
 			}
 
 			AmmoInMagazine--;
 			Log.Info( $"[HOST AMMO] Shooter={GameObject.Name} | AmmoInMagazine={AmmoInMagazine}" );
+
+			if ( AmmoInMagazine <= 0 )
+			{
+				StartReloadHost( slotIndex );
+			}
 		}
 
 		if ( IsDead )
@@ -723,23 +851,35 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			$"HitObject={tr.GameObject?.Name} | HitPos={tr.HitPosition} | HitNormal={tr.Normal}"
 		);
 
-		SpawnImpactEffects( tr.HitPosition, tr.Normal, slotIndex );
+		SpawnImpactEffects( tr.GameObject, tr.HitPosition, tr.Normal, slotIndex );
 	}
 
 	[Rpc.Broadcast]
-	private void SyncHealthState( float health, bool isDead )
+	private void SpawnImpactEffects( GameObject hitObject, Vector3 hitPosition, Vector3 hitNormal, int slotIndex )
 	{
 		Log.Info(
-			$"[SYNC HEALTH STATE] Player={GameObject.Name} | IncomingHealth={health} | IncomingIsDead={isDead} | " +
-			$"LocalBeforeHealth={Health} | LocalBeforeIsDead={IsDead}"
+			$"[IMPACT FX] Player={GameObject.Name} | Slot={slotIndex} | HitPos={hitPosition} | HitNormal={hitNormal}"
 		);
 
-		Health = health;
-		IsDead = isDead;
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+			return;
 
-		Log.Info(
-			$"[SYNC HEALTH STATE APPLIED] Player={GameObject.Name} | Health={Health} | IsDead={IsDead}"
-		);
+		var weapon = Inventory[slotIndex];
+		if ( !weapon.IsValid() || !weapon.ImpactDecalPrefab.IsValid() )
+			return;
+
+		var decal = weapon.ImpactDecalPrefab.Clone();
+		if ( !decal.IsValid() )
+			return;
+
+		if ( hitObject.IsValid() )
+		{
+			decal.Parent = hitObject;
+		}
+
+		decal.WorldPosition = hitPosition + hitNormal * 1.5f;
+		decal.WorldRotation = Rotation.LookAt( -hitNormal );
+		decal.WorldScale = Vector3.One;
 	}
 
 	[Rpc.Broadcast]
@@ -856,15 +996,21 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public bool IsLocalDead =>
 	IsDead && GameObject.Network.IsOwner;
 
-	public void ForceSyncHealthState()
+	[Rpc.Broadcast]
+	public void SyncHealthState( float newHealth, bool newIsDead )
 	{
-		Log.Info(
-			$"[FORCE SYNC HEALTH STATE] Player={GameObject.Name} | Health={Health} | IsDead={IsDead} | Position={GameObject.WorldPosition}"
-		);
+		Health = newHealth;
+		IsDead = newIsDead;
 
-		SyncHealthState( Health, IsDead );
+		Log.Info( $"[SYNC] {GameObject.Name} Health: {Health}, Dead: {IsDead}" );
 	}
 
+
+	public void ForceSyncHealthState()
+	{
+		Log.Info( $"[FORCE SYNC] {GameObject.Name} | Health={Health} | IsDead={IsDead}" );
+		SyncHealthState( Health, IsDead );
+	}
 
 
 
@@ -883,6 +1029,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		IsDead = true;
 		SyncHealthState( Health, true );
 		TimeSinceDeath = 0f;
+		IsReloading = false;
+		_reloadTimer = 0f;
 
 		_deathLocation = GameObject.WorldPosition;
 

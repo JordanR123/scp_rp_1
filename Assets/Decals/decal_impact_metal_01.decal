@@ -83,6 +83,8 @@
     },
     "compiled": "textures/generated/imagefile/bda6820ba3d4ca54.vtex"
   },
+  "EmissiveTexture": null,
+  "EmissionEnergy": 1,
   "HeightTexture": {
     "$compiler": "texture",
     "$source": "imagefile",
@@ -116,6 +118,7 @@
   "ColorMix": 0.4,
   "Width": 4,
   "Height": 4,
+  "FilterMode": "Anisotropic",
   "__references": [],
   "__version": 0
 }

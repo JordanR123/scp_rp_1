@@ -83,6 +83,8 @@
     },
     "compiled": "textures/generated/imagefile/4d7a123ed6084762.vtex"
   },
+  "EmissiveTexture": null,
+  "EmissionEnergy": 1,
   "HeightTexture": {
     "$compiler": "texture",
     "$source": "imagefile",
@@ -116,6 +118,7 @@
   "ColorMix": 0.33,
   "Width": 6,
   "Height": 6,
+  "FilterMode": "Anisotropic",
   "__references": [],
   "__version": 0
 }

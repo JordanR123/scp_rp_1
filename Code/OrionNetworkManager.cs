@@ -28,16 +28,24 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 			return;
 		}
 
+		// Find the GameManager to get the Spawn Room location
+		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
 		var spawnTransform = Transform.World;
 
-		if ( SpawnPoints is { Length: > 0 } && SpawnPoints[0].IsValid() )
+		// Use the SpawnRoomLocation if it exists, otherwise fallback to the first SpawnPoint
+		if ( manager.IsValid() && manager.SpawnRoomLocation.IsValid() )
+		{
+			spawnTransform = manager.SpawnRoomLocation.Transform.World;
+		}
+		else if ( SpawnPoints is { Length: > 0 } && SpawnPoints[0].IsValid() )
+		{
 			spawnTransform = SpawnPoints[0].Transform.World;
+		}
 
-		// Inside OrionNetworkManager.cs -> OnActive
 		var player = PlayerPrefab.Clone();
 		player.Transform.World = spawnTransform;
 		player.NetworkSpawn( connection );
 
-		Log.Info( $"[NET] Spawned player for connection {connection.Id} at {spawnTransform.Position}" );
+		Log.Info( $"[NET] Spawned player {connection.Id} in Spawn Room at {spawnTransform.Position}" );
 	}
 }

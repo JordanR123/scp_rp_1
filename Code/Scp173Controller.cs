@@ -136,11 +136,14 @@ public sealed class Scp173Controller : Component
 	{
 		foreach ( var player in Scene.GetAllComponents<OrionPlayerController>() )
 		{
-			var cam = player.PlayerCamera;
+			if ( !player.IsValid() || player.IsDead || player.Health <= 0f )
+				continue;
 
-			if ( !cam.IsValid() || !cam.Enabled ) continue;
+			var eyePos = player.NetworkEyePosition;
+			var forward = Rotation.From( player.NetworkLookAngles ).Forward;
 
-			Vector3[] checkPoints = {
+			Vector3[] checkPoints =
+			{
 			Transform.World.Position + Vector3.Up * 20f,
 			Transform.World.Position + Vector3.Up * 50f,
 			Transform.World.Position + Vector3.Up * 80f
@@ -148,12 +151,12 @@ public sealed class Scp173Controller : Component
 
 			foreach ( var point in checkPoints )
 			{
-				var toTarget = (point - cam.WorldPosition).Normal;
-				var forward = cam.WorldRotation.Forward;
+				var toTarget = (point - eyePos).Normal;
 
-				if ( Vector3.Dot( forward, toTarget ) > 0.3f )
+				// Stricter cone than 0.3 so "roughly in the same hemisphere" doesn't count.
+				if ( Vector3.Dot( forward, toTarget ) > 0.6f )
 				{
-					var tr = Scene.Trace.Ray( cam.WorldPosition, point )
+					var tr = Scene.Trace.Ray( eyePos, point )
 						.IgnoreGameObjectHierarchy( player.GameObject )
 						.Run();
 

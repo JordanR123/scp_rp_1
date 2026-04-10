@@ -8,6 +8,7 @@ public class OrionGameManager : Component
 	[Property] public GameObject SurfaceSpawn { get; set; }
 	[Property] public GameObject RoleSelectPrefab { get; set; }
 	[Property] public GameObject HudObject { get; set; }
+	[Property] public GameObject SpawnRoomLocation { get; set; }
 
 	protected override void OnStart()
 	{
@@ -50,7 +51,6 @@ public class OrionGameManager : Component
 	}
 
 
-
 	public void ResetPlayer( OrionPlayerController player )
 	{
 		if ( !player.IsValid() ) return;
@@ -63,6 +63,7 @@ public class OrionGameManager : Component
 		player.Health = player.MaxHealth;
 		player.IsDead = false;
 		player.TimeSinceDeath = 0f;
+		player.IsReloading = false;
 		player.GameObject.Enabled = true;
 
 		// Reward 100 Experience on death
@@ -73,18 +74,7 @@ public class OrionGameManager : Component
 		player.EquipWeapon( player.HasGun ? 1 : 0 );
 
 
-		// 2. Re-enable the camera and force it back to standard view
-		var cam = player.PlayerCamera;
-		if ( cam.IsValid() )
-		{
-			cam.Enabled = player.GameObject.Network.IsOwner;
-			cam.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * 64f;
-			cam.WorldRotation = player.GameObject.WorldRotation;
-
-			Log.Info( $"[RESET] Camera restored. Enabled={cam.Enabled}" );
-		}
-
-		// 3. Move to Spawn Point
+		// 2. Move to Spawn Point first
 		Transform target = player.CurrentRole switch
 		{
 			PlayerRole.DClass => DBlockSpawn.Transform.World,
@@ -95,14 +85,27 @@ public class OrionGameManager : Component
 
 		player.Transform.World = target;
 		player.Network.ClearInterpolation();
+
+		// 3. Reset look state so camera + shooting direction match the new spawn
+		player.ResetLookAfterRespawn();
+
+		// 4. Re-enable/update camera AFTER teleport + look reset
+		var cam = player.PlayerCamera;
+		if ( cam.IsValid() )
+		{
+			cam.Enabled = player.GameObject.Network.IsOwner;
+			cam.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * 64f;
+			cam.WorldRotation = Rotation.From( player.NetworkLookAngles );
+		}
+
+		player.IsInvincible = true;
+		player.StartInvincibility( 1.0f ); // 1 second
+
 		player.ForceSyncHealthState();
-		Log.Info( "[RESET] Player teleported and revived." );
-
-
-
-		// ADD THIS: Trigger save on respawn
 		player.UpdatePlayerVisuals();
 		player.SaveGame();
 		Log.Info( "[RESET] Player teleported, revived, and progress saved." );
 	}
+
+
 }
