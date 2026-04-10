@@ -44,7 +44,7 @@ public class OrionGameManager : Component
 		if ( player.PlayerCamera.IsValid() )
 		{
 			player.PlayerCamera.Enabled = player.GameObject.Network.IsOwner;
-			player.PlayerCamera.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * 64f;
+			player.PlayerCamera.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * player.StandingEyeHeight;
 			player.PlayerCamera.WorldRotation = player.GameObject.WorldRotation;
 		}
 

@@ -32,9 +32,21 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Sync] public bool ShowXpPopup { get; set; }
 	[Sync] public bool HasChosenRole { get; set; } = false;
 	[Sync] public string XpPopupMessage { get; set; } = "";
+
+
+
 	[Sync] public Angles NetworkLookAngles { get; set; }
 	[Sync] public Vector3 NetworkEyePosition { get; set; }
+	[Sync] public bool IsCrouching { get; set; }
+
+	[Property, Group( "Camera" )] public float StandingEyeHeight { get; set; } = 64f;
+	[Property, Group( "Camera" )] public float CrouchingEyeHeight { get; set; } = 42f;
+	[Property, Group( "Camera" )] public float EyeLerpSpeed { get; set; } = 12f;
+
 	[Property] public int ClearanceLevel { get; set; } = 0;
+
+	[Property, Group( "Camera" )] public GameObject EyeAnchor { get; set; }
+
 	public TimeSince TimeSinceLastDamage { get; set; } = 100f;
 	public TimeSince TimeSinceLastConfirmedHit { get; set; } = 100f;
 	[Property, Group( "Weapon" )] public SoundEvent HitSound { get; set; }
@@ -48,7 +60,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	[Property, Group( "Visuals" )] public CitizenAnimationHelper BodyAnimator { get; set; }
 	[Property, Group( "Visuals" )] public GameObject RightHandAnchor { get; set; }
-
 
 	[Property, Group( "UI" )] public OrionHUDState HudState { get; set; }
 	[Property, Group( "UI" )] public OrionChatManager ChatManager { get; set; }
@@ -161,6 +172,20 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		StartReloadHost( slotIndex );
 	}
+
+	[Rpc.Host]
+	private void SetCrouchingOnHost( bool crouching )
+	{
+
+		Log.Info( $"[CROUCH HOST] Player={GameObject.Name} Crouching={crouching}" );
+
+		if ( IsCrouching == crouching )
+			return;
+
+		IsCrouching = crouching;
+	}
+
+
 
 	public void StartInvincibility( float duration )
 	{
@@ -367,6 +392,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private float _yaw;
 	private float _pitch;
+	private float _currentEyeHeight;
 
 	protected override void OnStart()
 	{
@@ -376,9 +402,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		_yaw = GameObject.WorldRotation.Angles().yaw;
 		_pitch = 0f;
+		_currentEyeHeight = StandingEyeHeight;
 
 		NetworkLookAngles = new Angles( _pitch, _yaw, 0f );
-		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * 64f;
+		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * _currentEyeHeight;
 
 		RefreshLocalOwnershipState();
 
@@ -632,7 +659,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_deathLookAngles.pitch += lookDelta.pitch;
 		_deathLookAngles.pitch = _deathLookAngles.pitch.Clamp( -80f, 80f );
 
-		PlayerCamera.WorldPosition = _deathLocation + Vector3.Up * 64f;
+		PlayerCamera.WorldPosition = _deathLocation + Vector3.Up * _currentEyeHeight;
 		PlayerCamera.WorldRotation = Rotation.From( _deathLookAngles );
 	}
 
@@ -683,13 +710,20 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			Input.Keyboard.Pressed( "T" ) ||
 			Input.Keyboard.Pressed( "ENTER" );
 
-		var hud = ResolveHudState();
-		if ( hud.IsValid() )
+		bool wantsCrouch =
+			Input.Down( "duck" ) ||
+			Input.Keyboard.Down( "CTRL" ) ||
+			Input.Keyboard.Down( "C" );
+
+		if ( wantsCrouch != IsCrouching )
 		{
-			hud.IsVoiceKeyHeld = isHoldingVoice;
+			Log.Info( $"[CROUCH LOCAL] Wants={wantsCrouch} Owner={GameObject.Network.IsOwner} Proxy={IsProxy}" );
+
+			IsCrouching = wantsCrouch;
+
+			if ( GameObject.Network.IsOwner )
+				SetCrouchingOnHost( wantsCrouch );
 		}
-
-
 
 
 
@@ -708,7 +742,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			HandleDeathLookOnly();
 
 			NetworkLookAngles = _deathLookAngles;
-			NetworkEyePosition = _deathLocation + Vector3.Up * 64f;
+			NetworkEyePosition = _deathLocation + Vector3.Up * _currentEyeHeight;
 			return;
 		}
 
@@ -720,7 +754,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		UpdateLivingCamera();
 
 		NetworkLookAngles = new Angles( _pitch, _yaw, 0f );
-		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * 64f;
+		NetworkEyePosition = GetEyeWorldPosition();
 
 		Experience += Time.Delta;
 
@@ -760,19 +794,37 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		_deathLookAngles = new Angles( _pitch, _yaw, 0f );
 		NetworkLookAngles = _deathLookAngles;
-		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * 64f;
+		_currentEyeHeight = GetTargetEyeHeight();
+		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * _currentEyeHeight;
 
 		UpdateLivingCamera();
 		_respawnFireLock = 0.05f;
 	}
 
 
+	private float GetTargetEyeHeight()
+	{
+		// If you want EyeAnchor for standing only, keep it separate.
+		// Dedicated-safe crouch should come from IsCrouching.
+		return IsCrouching ? CrouchingEyeHeight : StandingEyeHeight;
+	}
+
+	private Vector3 GetEyeWorldPosition()
+	{
+		_currentEyeHeight = MathX.Lerp( _currentEyeHeight, GetTargetEyeHeight(), Time.Delta * EyeLerpSpeed );
+
+		// If you still want to use EyeAnchor as the base standing point, do not use it directly
+		// as the final camera source unless it is guaranteed to move correctly on dedicated.
+		// For now, use the player position + synced crouch height.
+		return GameObject.WorldPosition + Vector3.Up * _currentEyeHeight;
+	}
+
 	private void UpdateLivingCamera()
 	{
-		if ( !PlayerCamera.IsValid() ) return;
+		if ( !PlayerCamera.IsValid() )
+			return;
 
-		PlayerCamera.WorldPosition = GameObject.WorldPosition + Vector3.Up * 64f;
-		// Correct way to combine angles for a stable forward vector:
+		PlayerCamera.WorldPosition = GetEyeWorldPosition();
 		PlayerCamera.WorldRotation = Rotation.FromYaw( _yaw ) * Rotation.FromPitch( _pitch );
 	}
 
