@@ -11,7 +11,7 @@
 
         <div class="crosshair-dot"></div>
 
-        <div class="hitmarker @(TimeSinceHit < 0.15f ? "visible" : "")">
+        <div class="hitmarker @(TimeSinceConfirmedHit < 0.15f ? "visible" : "")">
     <div class="mark lt"></div>
     <div class="mark rt"></div>
     <div class="mark lb"></div>
@@ -126,7 +126,8 @@ private OrionPlayerController LocalPlayer => GetLocalPlayer();
 
 
 
-float TimeSinceHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastHit : 100f;
+float TimeSinceDamage => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastDamage : 100f;
+float TimeSinceConfirmedHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastConfirmedHit : 100f;
 Panel DamageVignette;
 
 
@@ -151,7 +152,7 @@ float DamagePulseAmount
 			return 0f;
 
 		const float pulseDuration = 0.45f;
-		return 1f - Math.Clamp( TimeSinceHit / pulseDuration, 0f, 1f );
+		return 1f - Math.Clamp( TimeSinceDamage / pulseDuration, 0f, 1f );
 	}
 }
 
@@ -183,15 +184,17 @@ void UpdateDamageVignette()
 
 protected override int BuildHash()
 {
+	if ( !LocalPlayer.IsValid() )
+		return 0;
+
 	return HashCode.Combine(
-		LocalPlayer?.HasGun ?? false,
-		LocalPlayer?.CurrentSlot ?? -1,
-		LocalPlayer?.CurrentAmmo ?? 0,
-		LocalPlayer?.CurrentMagazineSize ?? 0,
-		LocalPlayer?.TimeSinceLastHit ?? 0f,
-		LocalPlayer?.Health ?? 100f,
-		LocalPlayer?.MaxHealth ?? 100f,
-		LocalPlayer?.IsDead ?? false
+		LocalPlayer.HasGun,
+		LocalPlayer.CurrentSlot,
+		LocalPlayer.CurrentAmmo,
+		LocalPlayer.CurrentMagazineSize,
+		LocalPlayer.Health,
+		LocalPlayer.MaxHealth,
+		LocalPlayer.IsDead
 	);
 }
 

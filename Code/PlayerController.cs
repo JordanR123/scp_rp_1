@@ -34,7 +34,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Sync] public Angles NetworkLookAngles { get; set; }
 	[Sync] public Vector3 NetworkEyePosition { get; set; }
 	[Property] public int ClearanceLevel { get; set; } = 0;
-	[Sync] public TimeSince TimeSinceLastHit { get; set; } = 100f;
+	public TimeSince TimeSinceLastDamage { get; set; } = 100f;
+	public TimeSince TimeSinceLastConfirmedHit { get; set; } = 100f;
 	[Property, Group( "Weapon" )] public SoundEvent HitSound { get; set; }
 	[Property, Group( "Visuals" )] public SkinnedModelRenderer BodyRenderer { get; set; }
 
@@ -959,7 +960,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Rpc.Owner]
 	public void NotifyHitMarker()
 	{
-		TimeSinceLastHit = 0;
+		TimeSinceLastConfirmedHit = 0;
 
 		if ( HitSound is not null )
 		{
@@ -967,11 +968,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
-
 	[Rpc.Owner]
 	public void NotifyTookDamage()
 	{
-		TimeSinceLastHit = 0;
+		TimeSinceLastDamage = 0;
 	}
 
 
