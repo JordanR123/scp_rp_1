@@ -209,12 +209,14 @@
           "go": "5820999e-bf8f-4e81-bc0e-1f8375af395f",
           "component_type": "SkinnedModelRenderer"
         },
+        "ChatManager": null,
         "ClearanceLevel": 0,
         "CurrentRole": "DClass",
         "DClassClothing": "clothing/dclass_jumpsuit.clothing",
         "Experience": 0,
         "GuardClothing": "clothing/guard_army_shirt.clothing",
         "HitSound": "sounds/hitanddamagedsound.sound",
+        "HudState": null,
         "Inventory": [
           {
             "_type": "component",
@@ -252,10 +254,96 @@
         "RightHandAnchor": {
           "_type": "gameobject",
           "go": "fa420a23-463d-47e1-9220-f396e080acbc"
+        },
+        "VoiceChat": {
+          "_type": "component",
+          "component_id": "562fc133-4df6-4dc7-884b-f82a0bdbfe70",
+          "go": "4b203b4c-3c5a-41dc-b40b-5bfc5edecb9b",
+          "component_type": "Voice"
         }
       }
     ],
     "Children": [
+      {
+        "__guid": "4b203b4c-3c5a-41dc-b40b-5bfc5edecb9b",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Voice",
+        "Position": "-57.32695,-67.73951,6.40733",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.Voice",
+            "__guid": "562fc133-4df6-4dc7-884b-f82a0bdbfe70",
+            "__enabled": true,
+            "Flags": 0,
+            "Distance": 15000,
+            "Falloff": [
+              {
+                "x": 0,
+                "y": 1,
+                "in": 0,
+                "out": -1.8,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 0.05,
+                "y": 0.22,
+                "in": 3.5,
+                "out": -3.5,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 0.2,
+                "y": 0.04,
+                "in": 0.16,
+                "out": -0.16,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ],
+            "LipSync": true,
+            "Loopback": false,
+            "Mode": "PushToTalk",
+            "MorphScale": 3,
+            "MorphSmoothTime": 0.1,
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "PushToTalkInput": "voice",
+            "Renderer": {
+              "_type": "component",
+              "component_id": "e43ce1ef-2973-4e9d-a92a-74cf3a5c58ca",
+              "go": "5820999e-bf8f-4e81-bc0e-1f8375af395f",
+              "component_type": "SkinnedModelRenderer"
+            },
+            "VoiceMixer": {
+              "Name": "unknown",
+              "Id": "00000000-0000-0000-0000-000000000000"
+            },
+            "Volume": 1,
+            "WorldspacePlayback": true
+          }
+        ],
+        "Children": []
+      },
       {
         "__guid": "5820999e-bf8f-4e81-bc0e-1f8375af395f",
         "__version": 2,

@@ -52,6 +52,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	[Property, Group( "UI" )] public OrionHUDState HudState { get; set; }
 	[Property, Group( "UI" )] public OrionChatManager ChatManager { get; set; }
+	[Property, Group( "Voice" )] public Voice VoiceChat { get; set; }
+
 	public bool IsVoiceKeyHeld { get; set; }
 
 	private TimeUntil _invincibleTimer;
@@ -380,6 +382,29 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		RefreshLocalOwnershipState();
 
+
+		if ( !VoiceChat.IsValid() )
+		{
+			VoiceChat = Components.Get<Voice>( FindMode.EverythingInSelfAndChildren );
+		}
+
+		if ( !VoiceChat.IsValid() )
+		{
+			Log.Warning( $"[VOICE] No Voice component found on {GameObject.Name}. Voice chat will not work." );
+		}
+		else
+		{
+			VoiceChat.PushToTalkInput = "voice";
+			VoiceChat.WorldspacePlayback = true;
+
+			Log.Info(
+				$"[VOICE] Ready on {GameObject.Name} | " +
+				$"PushToTalkInput={VoiceChat.PushToTalkInput} | " +
+				$"IsListening={VoiceChat.IsListening} | " +
+				$"IsRecording={VoiceChat.IsRecording}"
+			);
+		}
+
 		if ( GameObject.Network.IsOwner && !HasChosenRole )
 		{
 			ShowRoleSelect();
@@ -646,13 +671,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 
 
-		// Inside OnUpdate() where you handle inputs:
-		var voice = GameObject.Components.Get<Voice>( FindMode.EverythingInSelfAndChildren );
-		if ( voice.IsValid() )
-		{
-			// Toggle microphone transmission based on key hold
-			voice.Enabled = Input.Down( "voice" ) || Input.Keyboard.Down( "V" );
-		}
+
+
+
+		bool isHoldingVoice =
+			Input.Down( "voice" ) ||
+			Input.Keyboard.Down( "V" );
 
 		bool pressedOpenChat =
 			Input.Pressed( "chat" ) ||
@@ -662,8 +686,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		var hud = ResolveHudState();
 		if ( hud.IsValid() )
 		{
-			hud.IsVoiceKeyHeld = Input.Keyboard.Down( "V" ) || Input.Down( "voice" );
+			hud.IsVoiceKeyHeld = isHoldingVoice;
 		}
+
+
+
+
 
 		if ( !IsTypingChat && pressedOpenChat )
 		{
