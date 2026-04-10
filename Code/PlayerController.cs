@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using Sandbox.Citizen;
+using System.Collections.Generic;
 
 
 public enum PlayerRole { DClass, Guard, Researcher }
@@ -48,6 +49,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property, Group( "Visuals" )] public CitizenAnimationHelper BodyAnimator { get; set; }
 	[Property, Group( "Visuals" )] public GameObject RightHandAnchor { get; set; }
 
+
+	[Property, Group( "UI" )] public OrionHUDState HudState { get; set; }
+	[Property, Group( "UI" )] public OrionChatManager ChatManager { get; set; }
+	public bool IsVoiceKeyHeld { get; set; }
 
 	private TimeUntil _invincibleTimer;
 
@@ -165,6 +170,106 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		Log.Info( $"[INVINCIBILITY] {GameObject.Name} for {duration}s" );
 	}
+
+
+	//Chat and Voice
+
+	public bool IsTypingChat
+	{
+		get
+		{
+			var hud = ResolveHudState();
+			return hud.IsValid() && hud.ShowChat;
+		}
+	}
+
+	public void OpenChat()
+	{
+		if ( !GameObject.Network.IsOwner || IsProxy )
+			return;
+
+		var hud = ResolveHudState();
+		if ( !hud.IsValid() )
+		{
+			Log.Warning( "[CHAT] No OrionHUDState found." );
+			return;
+		}
+
+		if ( IsDead )
+			return;
+
+		if ( hud.ShowRoleSelect )
+			return;
+
+		if ( hud.ShowChat )
+			return;
+
+		hud.OpenChat();
+		Log.Info( "[CHAT] Opened chat." );
+	}
+
+	public void CloseChat()
+	{
+		if ( !GameObject.Network.IsOwner || IsProxy )
+			return;
+
+		var hud = ResolveHudState();
+		if ( !hud.IsValid() )
+			return;
+
+		if ( !hud.ShowChat )
+			return;
+
+		hud.CloseChat();
+		Log.Info( "[CHAT] Closed chat." );
+	}
+
+	public void SubmitChatMessage()
+	{
+		if ( !GameObject.Network.IsOwner || IsProxy )
+			return;
+
+		var hud = ResolveHudState();
+		var chat = ResolveChatManager();
+
+		if ( !hud.IsValid() || !chat.IsValid() )
+		{
+			Log.Warning( "[CHAT] Missing OrionHUDState or OrionChatManager." );
+			return;
+		}
+
+		var text = hud.ChatDraft?.Trim() ?? "";
+
+		if ( string.IsNullOrWhiteSpace( text ) )
+		{
+			hud.CloseChat();
+			return;
+		}
+
+		chat.SendChatToHost( text );
+		hud.CloseChat();
+
+		Log.Info( $"[CHAT] Submitted: {text}" );
+	}
+
+	private OrionHUDState ResolveHudState()
+	{
+		if ( HudState.IsValid() )
+			return HudState;
+
+		return Scene.GetAllComponents<OrionHUDState>()
+			.FirstOrDefault( x => x.IsValid() );
+	}
+
+	private OrionChatManager ResolveChatManager()
+	{
+		if ( ChatManager.IsValid() )
+			return ChatManager;
+
+		return Scene.GetAllComponents<OrionChatManager>()
+			.FirstOrDefault( x => x.IsValid() );
+	}
+
 
 
 
@@ -527,6 +632,44 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
 
+
+		if ( IsTypingChat )
+		{
+			if ( Input.Keyboard.Pressed( "ESCAPE" ) )
+			{
+				CloseChat();
+				return;
+			}
+
+			// Let the UI text entry handle Enter.
+			return;
+		}
+
+
+		// Inside OnUpdate() where you handle inputs:
+		var voice = GameObject.Components.Get<Voice>( FindMode.EverythingInSelfAndChildren );
+		if ( voice.IsValid() )
+		{
+			// Toggle microphone transmission based on key hold
+			voice.Enabled = Input.Down( "voice" ) || Input.Keyboard.Down( "V" );
+		}
+
+		bool pressedOpenChat =
+			Input.Pressed( "chat" ) ||
+			Input.Keyboard.Pressed( "T" ) ||
+			Input.Keyboard.Pressed( "ENTER" );
+
+		var hud = ResolveHudState();
+		if ( hud.IsValid() )
+		{
+			hud.IsVoiceKeyHeld = Input.Keyboard.Down( "V" ) || Input.Down( "voice" );
+		}
+
+		if ( !IsTypingChat && pressedOpenChat )
+		{
+			OpenChat();
+			return;
+		}
 
 
 		UpdateXpPopup();

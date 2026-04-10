@@ -4,7 +4,7 @@
 @using System;
 @inherits PanelComponent
 
-<root style="pointer-events: @(IsDead ? "all" : "none")">
+<root style="pointer-events: @((IsDead || IsChatOpen) ? "all" : "none")">
     <div class="hud-root @(IsDead ? "is-dead" : "")">
 
         <div class="damage-vignette" @ref="DamageVignette"></div>
@@ -87,6 +87,31 @@
 }
 
 
+        @if ( ChatMessages.Count > 0 || IsChatOpen )
+{
+    <div class="chat-box @(IsChatOpen ? "open" : "")">
+        <div class="chat-log">
+            @foreach ( var msg in ChatMessages )
+            {
+                <div class="chat-line">@msg</div>
+            }
+        </div>
+
+        @if ( IsChatOpen )
+        {
+            <OrionChatTextEntry class="chat-input" @ref="ChatInput" />
+        }
+    </div>
+}
+
+        @if ( HudState?.IsVoiceKeyHeld ?? false )
+{
+    <div class="voice-indicator">
+        <label>VOICE: ON</label>
+    </div>
+}
+
+
          @if ( IsDead )
         {
             var p = GetLocalPlayer();
@@ -116,99 +141,169 @@
 
 @code {
 
-private OrionPlayerController GetLocalPlayer()
+    private OrionPlayerController GetLocalPlayer()
     {
         return Scene.GetAllComponents<OrionPlayerController>()
             .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner && !x.IsProxy );
     }
 
-private OrionPlayerController LocalPlayer => GetLocalPlayer();
+    private OrionPlayerController LocalPlayer => GetLocalPlayer();
 
+    float TimeSinceDamage => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastDamage : 100f;
+    float TimeSinceConfirmedHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastConfirmedHit : 100f;
 
+    Panel DamageVignette;
+    OrionChatTextEntry ChatInput;
 
-float TimeSinceDamage => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastDamage : 100f;
-float TimeSinceConfirmedHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastConfirmedHit : 100f;
-Panel DamageVignette;
+    float HealthFraction
+    {
+        get
+        {
+            if ( !LocalPlayer.IsValid() || LocalPlayer.MaxHealth <= 0f )
+                return 1f;
 
+            return Math.Clamp( LocalPlayer.Health / LocalPlayer.MaxHealth, 0f, 1f );
+        }
+    }
 
-float HealthFraction
-{
-	get
-	{
-		if ( !LocalPlayer.IsValid() || LocalPlayer.MaxHealth <= 0f )
-			return 1f;
+    float LowHealthAmount => 1f - HealthFraction;
 
-		return Math.Clamp( LocalPlayer.Health / LocalPlayer.MaxHealth, 0f, 1f );
-	}
-}
+    float DamagePulseAmount
+    {
+        get
+        {
+            if ( !LocalPlayer.IsValid() )
+                return 0f;
 
-float LowHealthAmount => 1f - HealthFraction;
+            const float pulseDuration = 0.45f;
+            return 1f - Math.Clamp( TimeSinceDamage / pulseDuration, 0f, 1f );
+        }
+    }
 
-float DamagePulseAmount
-{
-	get
-	{
-		if ( !LocalPlayer.IsValid() )
-			return 0f;
+    void UpdateDamageVignette()
+    {
+        if ( DamageVignette is null || !DamageVignette.IsValid() )
+            return;
 
-		const float pulseDuration = 0.45f;
-		return 1f - Math.Clamp( TimeSinceDamage / pulseDuration, 0f, 1f );
-	}
-}
+        if ( !LocalPlayer.IsValid() )
+        {
+            DamageVignette.Style.Opacity = 0f;
+            return;
+        }
 
-void UpdateDamageVignette()
-{
-	if ( DamageVignette is null || !DamageVignette.IsValid() )
-		return;
+        float baseOpacity = LowHealthAmount * 0.75f;
+        float pulseOpacity = DamagePulseAmount * 0.65f;
+        float finalOpacity = Math.Clamp( baseOpacity + pulseOpacity, 0f, 1f );
 
-	if ( !LocalPlayer.IsValid() )
-	{
-		DamageVignette.Style.Opacity = 0f;
-		return;
-	}
+        float borderThickness = 18f + (LowHealthAmount * 90f);
 
-	float baseOpacity = LowHealthAmount * 0.75f;
-	float pulseOpacity = DamagePulseAmount * 0.65f;
-	float finalOpacity = Math.Clamp( baseOpacity + pulseOpacity, 0f, 1f );
-
-	// Make the red border thicker as health gets lower
-	float borderThickness = 18f + (LowHealthAmount * 90f);
-
-	DamageVignette.Style.Opacity = finalOpacity;
-	DamageVignette.Style.BorderTopWidth = borderThickness;
-	DamageVignette.Style.BorderBottomWidth = borderThickness;
-	DamageVignette.Style.BorderLeftWidth = borderThickness;
-	DamageVignette.Style.BorderRightWidth = borderThickness;
-}
-
+        DamageVignette.Style.Opacity = finalOpacity;
+        DamageVignette.Style.BorderTopWidth = borderThickness;
+        DamageVignette.Style.BorderBottomWidth = borderThickness;
+        DamageVignette.Style.BorderLeftWidth = borderThickness;
+        DamageVignette.Style.BorderRightWidth = borderThickness;
+    }
 
 protected override int BuildHash()
 {
-	if ( !LocalPlayer.IsValid() )
-		return 0;
+    if ( !LocalPlayer.IsValid() )
+        return 0;
 
-	return HashCode.Combine(
-		LocalPlayer.HasGun,
-		LocalPlayer.CurrentSlot,
-		LocalPlayer.CurrentAmmo,
-		LocalPlayer.CurrentMagazineSize,
-		LocalPlayer.Health,
-		LocalPlayer.MaxHealth,
-		LocalPlayer.IsDead
-	);
+    int playerHash = HashCode.Combine(
+        LocalPlayer.HasGun,
+        LocalPlayer.CurrentSlot,
+        LocalPlayer.CurrentAmmo,
+        LocalPlayer.CurrentMagazineSize,
+        LocalPlayer.Health,
+        LocalPlayer.MaxHealth,
+        LocalPlayer.IsDead
+    );
+
+    int hudHash = HashCode.Combine(
+        HudState?.ShowChat ?? false,
+        HudState?.ChatDraft ?? "",
+        HudState?.IsVoiceKeyHeld ?? false
+    );
+
+    return HashCode.Combine( playerHash, hudHash );
 }
 
-        private void RespawnLocalPlayer()
+    OrionHUDState GetHudState()
+    {
+        return Scene.GetAllComponents<OrionHUDState>().FirstOrDefault( x => x.IsValid() );
+    }
+
+    OrionHUDState HudState => GetHudState();
+
+    bool IsChatOpen => HudState?.ShowChat ?? false;
+
+    List<string> ChatMessages => HudState?.ChatMessages ?? new();
+
+    string ChatDraft
+    {
+        get => HudState?.ChatDraft ?? "";
+        set
         {
-            var player = GetLocalPlayer();
-            if ( !player.IsValid() )
-                return;
-
-            if ( !player.IsLocalDead )
-                return;
-
-            player.Respawn();
+            if ( HudState.IsValid() )
+                HudState.ChatDraft = eSafeString( value );
         }
+    }
+
+    void OnChatTextEdited( string value )
+    {
+	    ChatDraft = value ?? string.Empty;
+    }
+
+    void SubmitChatFromHud()
+    {
+	    var player = GetLocalPlayer();
+	    if ( !player.IsValid() )
+		    return;
+
+	    player.SubmitChatMessage();
+    }
+
+    void CancelChatFromHud()
+    {
+	    var player = GetLocalPlayer();
+	    if ( !player.IsValid() )
+		    return;
+
+	    player.CloseChat();
+    }
+
+    private static string eSafeString( string value ) => value ?? string.Empty;
+
+    protected override void OnStart()
+    {
+        OrionChatManager.OnChatMessageReceived += OnChatMessageReceived;
+    }
+
+    protected override void OnDisabled()
+    {
+        OrionChatManager.OnChatMessageReceived -= OnChatMessageReceived;
+    }
+
+    void OnChatMessageReceived( string playerName, string message )
+    {
+        if ( HudState.IsValid() )
+        {
+            HudState.AddChatMessage( playerName, message );
+            StateHasChanged();
+        }
+    }
+
+    private void RespawnLocalPlayer()
+    {
+        var player = GetLocalPlayer();
+        if ( !player.IsValid() )
+            return;
+
+        if ( !player.IsLocalDead )
+            return;
+
+        player.Respawn();
+    }
 
     private OrionPlayerController GetPlayer()
     {
@@ -230,45 +325,99 @@ protected override int BuildHash()
 
     private OrionHUDState GetHUDState() => Scene.GetAllComponents<OrionHUDState>().FirstOrDefault();
 
-    bool IsDead => GetPlayer(true)?.IsLocalDead ?? false;
+    bool IsDead => GetPlayer( true )?.IsLocalDead ?? false;
     bool ShowDenied => GetHUDState().IsValid() && GetHUDState().ShowDenied;
 
-    bool ShowXpGiftPopup => GetPlayer(true)?.ShowXpPopup ?? false;
-    string XpGiftPopupMessage => GetPlayer(true)?.XpPopupMessage ?? "";
+    bool ShowXpGiftPopup => GetPlayer( true )?.ShowXpPopup ?? false;
+    string XpGiftPopupMessage => GetPlayer( true )?.XpPopupMessage ?? "";
 
     string LocalName => Connection.Local?.DisplayName?.ToUpper() ?? "PLAYER";
-    int Health => GetPlayer(true).IsValid() ? (int)GetPlayer(true).Health : 100;
-    int Level => GetPlayer(true)?.PlayerLevel ?? 1;
-    int Clearance => GetPlayer(true)?.ClearanceLevel ?? 0;
-    string Role => GetPlayer(true)?.CurrentRole.ToString() ?? "UNASSIGNED";
-    string RoleLower => Role.Replace(" ", "").ToLower();
-    string RoleLabel => Role.Replace("Class", " CLASS").ToUpper();
+    int Health => GetPlayer( true ).IsValid() ? (int)GetPlayer( true ).Health : 100;
+    int Level => GetPlayer( true )?.PlayerLevel ?? 1;
+    int Clearance => GetPlayer( true )?.ClearanceLevel ?? 0;
+    string Role => GetPlayer( true )?.CurrentRole.ToString() ?? "UNASSIGNED";
+    string RoleLower => Role.Replace( " ", "" ).ToLower();
+    string RoleLabel => Role.Replace( "Class", " CLASS" ).ToUpper();
 
     float LevelProgress
     {
         get
         {
-            var p = GetPlayer(true);
+            var p = GetPlayer( true );
             if ( p == null ) return 0f;
 
-            // Calculate XP needed for the NEXT level
-            // Level 1 -> 2 needs 600, Level 2 -> 3 needs 1200
             float targetXp = p.PlayerLevel * 600f;
-        
-            // This calculates progress relative to the current level's goal
-            return Math.Clamp((p.Experience / targetXp) * 100f, 0f, 100f);
+            return Math.Clamp( (p.Experience / targetXp) * 100f, 0f, 100f );
         }
     }
 
-    protected override void OnUpdate()
-    {
-        UpdateDamageVignette();
-        StateHasChanged();
+        bool _wasChatOpen;
+        bool _blockChatHotkeysUntilReleased;
 
-        var state = GetHUDState();
-        if ( state.IsValid() && state.ShowDenied && state.DeniedTimer > 2.0f )
+        protected override void OnUpdate()
         {
-            state.ShowDenied = false;
+	        UpdateDamageVignette();
+
+	        var state = GetHUDState();
+	        if ( !state.IsValid() )
+	        {
+		        StateHasChanged();
+		        return;
+	        }
+
+	        if ( state.ShowDenied && state.DeniedTimer > 2.0f )
+	        {
+		        state.ShowDenied = false;
+	        }
+
+	        if ( state.ShowChat && !_wasChatOpen )
+	        {
+		        _blockChatHotkeysUntilReleased = true;
+	        }
+
+	        _wasChatOpen = state.ShowChat;
+
+	        if ( state.ShowChat )
+	        {
+		        // Don't let the same key that opened chat instantly submit it.
+		        if ( _blockChatHotkeysUntilReleased )
+		        {
+			        bool openingKeysStillHeld =
+				        Input.Keyboard.Down( "ENTER" ) ||
+				        Input.Keyboard.Down( "KP_ENTER" ) ||
+				        Input.Keyboard.Down( "T" );
+
+			        if ( !openingKeysStillHeld )
+			        {
+				        _blockChatHotkeysUntilReleased = false;
+			        }
+		        }
+	        }
+
+	        StateHasChanged();
         }
-    }
+
+        protected override void OnTreeBuilt()
+        {
+	        base.OnTreeBuilt();
+
+	        var state = GetHUDState();
+	        if ( !state.IsValid() || !state.ShowChat )
+		        return;
+
+	        if ( ChatInput is null || !ChatInput.IsValid() )
+		        return;
+
+	        ChatInput.AcceptsFocus = true;
+	        ChatInput.Placeholder = "Type message...";
+	        ChatInput.Edited = OnChatTextEdited;
+	        ChatInput.Submitted = SubmitChatFromHud;
+	        ChatInput.Cancelled = CancelChatFromHud;
+
+	        if ( !ChatInput.HasFocus )
+	        {
+		        ChatInput.Text = ChatDraft ?? string.Empty;
+		        ChatInput.Focus();
+	        }
+        }
 }

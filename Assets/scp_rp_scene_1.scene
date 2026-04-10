@@ -2330,6 +2330,12 @@
               "__guid": "2fd87500-6b0d-4c00-b4dc-1ee0c40844c7",
               "__enabled": true,
               "Flags": 0,
+              "ChatManager": {
+                "_type": "component",
+                "component_id": "06656888-d8b8-4dc4-aa9e-a080e72937ce",
+                "go": "731397cd-5a4e-466c-81e6-e8ff81a71fed",
+                "component_type": "OrionChatManager"
+              },
               "DBlockSpawn": {
                 "_type": "gameobject",
                 "go": "e9c09515-d775-4b2b-9d66-18f075f16f12"
@@ -2465,6 +2471,37 @@
             }
           ],
           "Children": []
+        },
+        {
+          "__guid": "731397cd-5a4e-466c-81e6-e8ff81a71fed",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "ChatManager",
+          "Position": "0,0,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "OrionChatManager",
+              "__guid": "06656888-d8b8-4dc4-aa9e-a080e72937ce",
+              "__enabled": true,
+              "Flags": 0,
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null
+            }
+          ],
+          "Children": []
         }
       ]
     }
@@ -2490,7 +2527,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "ee9900e2-8d8b-476a-afb8-b420a8c56843"
+          "$blob": "064e4d59-826c-4b42-90a4-c90465398888"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

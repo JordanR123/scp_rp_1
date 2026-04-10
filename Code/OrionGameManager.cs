@@ -9,6 +9,7 @@ public class OrionGameManager : Component
 	[Property] public GameObject RoleSelectPrefab { get; set; }
 	[Property] public GameObject HudObject { get; set; }
 	[Property] public GameObject SpawnRoomLocation { get; set; }
+	[Property] public OrionChatManager ChatManager { get; set; }
 
 	protected override void OnStart()
 	{
