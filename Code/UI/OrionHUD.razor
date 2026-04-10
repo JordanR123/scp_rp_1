@@ -10,6 +10,13 @@
 
         <div class="crosshair-dot"></div>
 
+        <div class="hitmarker @(TimeSinceHit < 0.15f ? "visible" : "")">
+    <div class="mark lt"></div>
+    <div class="mark rt"></div>
+    <div class="mark lb"></div>
+    <div class="mark rb"></div>
+    </div>
+
 
         <div class="top-bar">
             <div class="player-card">
@@ -113,8 +120,10 @@ private OrionPlayerController GetLocalPlayer()
             .FirstOrDefault( x => x.IsValid() && x.GameObject.Network.IsOwner && !x.IsProxy );
     }
 
+private OrionPlayerController LocalPlayer => GetLocalPlayer();
 
-    private OrionPlayerController LocalPlayer => GetLocalPlayer();
+float TimeSinceHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastHit : 100f;
+
 
 protected override int BuildHash()
 {
@@ -122,11 +131,10 @@ protected override int BuildHash()
 		LocalPlayer?.HasGun ?? false,
 		LocalPlayer?.CurrentSlot ?? -1,
 		LocalPlayer?.CurrentAmmo ?? 0,
-		LocalPlayer?.CurrentMagazineSize ?? 0
+		LocalPlayer?.CurrentMagazineSize ?? 0,
+        LocalPlayer?.TimeSinceLastHit ?? 0
 	);
 }
-
-
 
         private void RespawnLocalPlayer()
         {

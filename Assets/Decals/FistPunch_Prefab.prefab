@@ -28,7 +28,7 @@
           "decals/punchdecal.decal"
         ],
         "Depth": 8,
-        "LifeTime": 0,
+        "LifeTime": 60,
         "Looped": false,
         "OnComponentDestroy": null,
         "OnComponentDisabled": null,

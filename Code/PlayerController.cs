@@ -1,6 +1,8 @@
 ﻿using Sandbox;
 using System;
 using System.Linq;
+using Sandbox.Citizen;
+
 
 public enum PlayerRole { DClass, Guard, Researcher }
 
@@ -32,8 +34,19 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Sync] public Angles NetworkLookAngles { get; set; }
 	[Sync] public Vector3 NetworkEyePosition { get; set; }
 	[Property] public int ClearanceLevel { get; set; } = 0;
+	[Sync] public TimeSince TimeSinceLastHit { get; set; } = 100f;
+	[Property, Group( "Weapon" )] public SoundEvent HitSound { get; set; }
+	[Property, Group( "Visuals" )] public SkinnedModelRenderer BodyRenderer { get; set; }
 
 	[Sync] public bool IsInvincible { get; set; }
+
+	[Property, Group( "Visuals" )] public Clothing DClassClothing { get; set; }
+	[Property, Group( "Visuals" )] public Clothing GuardClothing { get; set; }
+	[Property, Group( "Visuals" )] public Clothing ResearcherClothing { get; set; }
+
+	[Property, Group( "Visuals" )] public CitizenAnimationHelper BodyAnimator { get; set; }
+	[Property, Group( "Visuals" )] public GameObject RightHandAnchor { get; set; }
+
 
 	private TimeUntil _invincibleTimer;
 
@@ -299,6 +312,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 
 		UpdateWeaponVisibility();
+		UpdateThirdPersonBodyPose();
 
 		Log.Info( $"[OWNER STATE] {GameObject.Name} | IsOwner={GameObject.Network.IsOwner} | IsProxy={IsProxy} | CameraEnabled={isOwner}" );
 	}
@@ -337,11 +351,77 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 
+
+
 	public void UpdatePlayerVisuals()
 	{
-		// Intentionally empty for now.
-		// Role-specific body visuals will be added later.
+		if ( !BodyRenderer.IsValid() )
+		{
+			Log.Warning( "[VISUALS] BodyRenderer not assigned." );
+			return;
+		}
+
+		var container = new ClothingContainer();
+
+		var selectedClothing = CurrentRole switch
+		{
+			PlayerRole.Guard => GuardClothing,
+			PlayerRole.Researcher => ResearcherClothing,
+			_ => DClassClothing
+		};
+
+		if ( selectedClothing is null )
+		{
+			Log.Warning( $"[VISUALS] No clothing assigned for role {CurrentRole}" );
+			return;
+		}
+
+		container.Clothing.Add( new ClothingContainer.ClothingEntry
+		{
+			Clothing = selectedClothing
+		} );
+
+		container.Apply( BodyRenderer );
+		Log.Info( $"[VISUALS] Applied {selectedClothing.Title} for role {CurrentRole}" );
 	}
+
+	private void UpdateThirdPersonBodyPose()
+	{
+		if ( !BodyAnimator.IsValid() || !BodyRenderer.IsValid() )
+			return;
+
+		BodyAnimator.Target = BodyRenderer;
+
+		if ( PlayerCamera.IsValid() )
+			BodyAnimator.EyeSource = PlayerCamera.GameObject;
+
+		BodyAnimator.AimAngle = NetworkLookAngles;
+		BodyAnimator.IsGrounded = true;
+
+		if ( IsDead )
+		{
+			BodyAnimator.HoldType = CitizenAnimationHelper.HoldTypes.None;
+			return;
+		}
+
+		if ( CurrentSlot == 0 )
+		{
+			// Fists
+			BodyAnimator.HoldType = CitizenAnimationHelper.HoldTypes.Punch;
+		}
+		else if ( CurrentSlot == 1 && HasGun )
+		{
+			// Use Pistol for a handgun, Rifle if it's a long gun.
+			BodyAnimator.HoldType = CitizenAnimationHelper.HoldTypes.Pistol;
+			BodyAnimator.Handedness = CitizenAnimationHelper.Hand.Right;
+		}
+		else
+		{
+			BodyAnimator.HoldType = CitizenAnimationHelper.HoldTypes.None;
+		}
+	}
+
+
 
 	public void OnDamage( in DamageInfo damage )
 	{
@@ -439,6 +519,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				Log.Info( $"[INVINCIBILITY END] {GameObject.Name}" );
 			}
 		}
+
+		UpdateThirdPersonBodyPose();
 
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
@@ -551,6 +633,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		var slot0Name = Inventory.Count > 0 && Inventory[0].IsValid() ? Inventory[0].WeaponName : "NULL";
 		var slot1Name = Inventory.Count > 1 && Inventory[1].IsValid() ? Inventory[1].WeaponName : "NULL";
+
+		UpdateWeaponVisibility();
+		UpdateThirdPersonBodyPose();
+
 
 		Log.Info(
 			$"[LOADOUT] Player={GameObject.Name} | Role={CurrentRole} | HasGun={HasGun} | " +
@@ -818,6 +904,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( damageable != null )
 		{
+			
 			Log.Info(
 				$"[HOST APPLY DAMAGE] Shooter={GameObject.Name} -> HitObject={tr.GameObject.Name} | Damage={weapon.Damage}"
 			);
@@ -833,6 +920,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 			if ( targetPlayer.IsValid() )
 			{
+				NotifyHitMarker();
+
 				Log.Info(
 					$"[HOST DAMAGE APPLIED] Shooter={GameObject.Name} -> Target={targetPlayer.GameObject.Name} | " +
 					$"TargetHealthAfter={targetPlayer.Health} | TargetIsDead={targetPlayer.IsDead}"
@@ -853,6 +942,19 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		SpawnImpactEffects( tr.GameObject, tr.HitPosition, tr.Normal, slotIndex );
 	}
+
+
+	[Rpc.Owner]
+	public void NotifyHitMarker()
+	{
+		TimeSinceLastHit = 0;
+
+		if ( HitSound is not null )
+		{
+			GameObject.PlaySound( HitSound );
+		}
+	}
+
 
 	[Rpc.Broadcast]
 	private void SpawnImpactEffects( GameObject hitObject, Vector3 hitPosition, Vector3 hitNormal, int slotIndex )
@@ -950,15 +1052,18 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				continue;
 
 			bool isActive = i == CurrentSlot;
-			bool shouldShow = isLocalFirstPerson && isActive;
 
-			weapon.SetVisible( shouldShow );
+			weapon.SetFirstPersonVisible( false );
+			weapon.SetThirdPersonVisible( false );
 
-			if ( shouldShow && PlayerCamera.IsValid() )
+			// Local first-person active weapon
+			if ( isLocalFirstPerson && isActive && PlayerCamera.IsValid() )
 			{
 				weapon.GameObject.Parent = PlayerCamera.GameObject;
 				weapon.LocalPosition = Vector3.Zero;
 				weapon.LocalRotation = Rotation.Identity;
+
+				weapon.SetFirstPersonVisible( true );
 
 				if ( weapon.ViewModel.IsValid() )
 				{
@@ -966,6 +1071,23 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 					weapon.ViewModel.LocalRotation = Rotation.Identity;
 				}
 			}
+			// Third-person active weapon for other players
+			else if ( isActive && RightHandAnchor.IsValid() && i == 1 )
+			{
+				weapon.GameObject.Parent = RightHandAnchor;
+				weapon.LocalPosition = Vector3.Zero;
+				weapon.LocalRotation = Rotation.Identity;
+
+				weapon.SetThirdPersonVisible( true );
+
+				if ( weapon.WorldModel.IsValid() )
+				{
+					weapon.WorldModel.LocalPosition = weapon.WorldOffset;
+					weapon.WorldModel.LocalRotation = Rotation.From( weapon.WorldAngles );
+				}
+			}
+
+
 		}
 	}
 

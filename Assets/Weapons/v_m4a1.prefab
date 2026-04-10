@@ -1,6 +1,6 @@
 {
   "RootObject": {
-    "__guid": "9d63e20b-ea38-4360-bde9-1508c30751e2",
+    "__guid": "6b565be3-3f67-424a-8de5-3d0f18eaf935",
     "__version": 2,
     "Flags": 0,
     "Name": "v_m4a1",
@@ -17,7 +17,7 @@
     "Components": [
       {
         "__type": "Sandbox.SkinnedModelRenderer",
-        "__guid": "67d5b36d-d317-47d3-9880-b7ec8549fb83",
+        "__guid": "c932c26f-6419-4041-96db-aaea1503f5e1",
         "__enabled": true,
         "Flags": 0,
         "AnimationGraph": null,

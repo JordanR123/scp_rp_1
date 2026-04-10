@@ -400,3 +400,50 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
 }
+
+
+.hitmarker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    .mark {
+        position: absolute;
+        background-color: white;
+        width: 2px;
+        height: 8px;
+    }
+    /* Create the X shape using 45 degree rotations */
+    .lt {
+        transform: rotate(45deg);
+        top: 0;
+        left: 0;
+    }
+
+    .rt {
+        transform: rotate(-45deg);
+        top: 0;
+        right: 0;
+    }
+
+    .lb {
+        transform: rotate(-45deg);
+        bottom: 0;
+        left: 0;
+    }
+
+    .rb {
+        transform: rotate(45deg);
+        bottom: 0;
+        right: 0;
+    }
+}
