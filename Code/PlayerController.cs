@@ -733,7 +733,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				$"Ammo={AmmoInMagazine} | Origin={PlayerCamera.WorldPosition} | Forward={PlayerCamera.WorldRotation.Forward}"
 			);
 
-			PlayAttackEffects();
+			
 
 			UpdateLivingCamera();
 
@@ -754,28 +754,35 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 	[Rpc.Broadcast]
-	private void PlayAttackEffects()
+	private void PlayAttackEffects( int slotIndex, Vector3 soundPosition )
 	{
-		if ( !ActiveWeapon.IsValid() )
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
 			return;
 
-		if ( ActiveWeapon.ViewModel.IsValid() )
+		var weapon = Inventory[slotIndex];
+		if ( !weapon.IsValid() )
+			return;
+
+		// Only animate the local first-person viewmodel for the owning player
+		bool isLocalOwner = GameObject.Network.IsOwner && !IsProxy;
+
+		if ( isLocalOwner && weapon.ViewModel.IsValid() )
 		{
-			var renderer = ActiveWeapon.ViewModel.Components.Get<SkinnedModelRenderer>();
+			var renderer = weapon.ViewModel.Components.Get<SkinnedModelRenderer>();
 			if ( renderer.IsValid() )
 			{
-				renderer.Set( ActiveWeapon.AttackTrigger, true );
+				renderer.Set( weapon.AttackTrigger, true );
 			}
 		}
 
-		if ( ActiveWeapon.ShootSound is not null )
+		if ( weapon.ShootSound is not null )
 		{
-			Log.Info( $"[GUN SOUND] Playing {ActiveWeapon.ShootSound.ResourceName}" );
-			ActiveWeapon.GameObject.PlaySound( ActiveWeapon.ShootSound, Vector3.Zero );
+			Log.Info( $"[GUN SOUND] Playing {weapon.ShootSound.ResourceName} at {soundPosition}" );
+			Sound.Play( weapon.ShootSound, soundPosition );
 		}
 		else
 		{
-			Log.Warning( $"[GUN SOUND] No ShootSound assigned on weapon {ActiveWeapon.WeaponName}" );
+			Log.Warning( $"[GUN SOUND] No ShootSound assigned on weapon {weapon.WeaponName}" );
 		}
 	}
 
@@ -788,6 +795,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Rpc.Host]
 	private void RequestFireOnHost( Vector3 origin, Vector3 direction, int slotIndex )
 	{
+
+
 		Log.Info(
 			$"[HOST FIRE RPC RECEIVED] Shooter={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
 			$"Slot={slotIndex} | Origin={origin} | Direction={direction}"
@@ -850,6 +859,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			);
 			return;
 		}
+
+		PlayAttackEffects( slotIndex, GameObject.WorldPosition );
 
 		Log.Info(
 			$"[HOST FIRE WEAPON CHECK] Shooter={GameObject.Name} | Weapon={weapon.WeaponName} | " +
