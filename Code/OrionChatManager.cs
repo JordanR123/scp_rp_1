@@ -19,9 +19,23 @@ public sealed class OrionChatManager : Component
 		var caller = Rpc.Caller;
 		var playerName = caller.DisplayName ?? $"Player {caller.Id}";
 
-		Log.Info( $"[CHAT HOST] {playerName}: {message}" );
+		string rolePrefix = "";
 
-		BroadcastChatMessage( playerName, message );
+		foreach ( var player in Scene.GetAllComponents<OrionPlayerController>() )
+		{
+			if ( !player.IsValid() )
+				continue;
+
+			if ( player.Network.OwnerConnection == caller )
+			{
+				rolePrefix = $"[{player.CurrentRole}] ";
+				break;
+			}
+		}
+
+		Log.Info( $"[CHAT HOST] {rolePrefix}{playerName}: {message}" );
+
+		BroadcastChatMessage( rolePrefix + playerName, message );
 	}
 
 	[Rpc.Broadcast]
