@@ -620,6 +620,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			return;
 		}
 
+		if ( IsRespawnBlocked() )
+		{
+			ShowTimedXpPopup( "CAN'T CHANGE ROLE WHILE RESPAWNING", XpPopupType.Error );
+			Log.Warning( $"[ROLE PICK DEBUG] BLOCKED: {GameObject.Name} tried to change role while respawning" );
+			return;
+		}
+
 		Log.Info( $"[ROLE PICK DEBUG] Sending RequestChooseRoleOnHost({role})" );
 		RequestChooseRoleOnHost( role );
 	}
@@ -628,6 +635,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	private void RequestChooseRoleOnHost( PlayerRole role )
 	{
 		Log.Info( $"[ROLE HOST DEBUG] RequestChooseRoleOnHost ENTER | Player={GameObject.Name} | Role={role}" );
+
+		if ( IsDead )
+		{
+			Log.Warning( $"[ROLE HOST DEBUG] BLOCKED: {GameObject.Name} tried to change role while dead/respawning." );
+			ShowTimedXpPopup( "CAN'T CHANGE ROLE WHILE RESPAWNING", XpPopupType.Error );
+			return;
+		}
 
 		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
 		if ( !manager.IsValid() )
@@ -782,6 +796,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		Log.Info( $"[ROLE UI DEBUG] UI cloned successfully | Instance={_roleUiInstance?.Name}" );
 	}
 
+
+	private bool IsRespawnBlocked()
+	{
+		return IsDead;
+	}
+
 	private void OpenRoleMenuAnytime()
 	{
 
@@ -812,6 +832,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		if ( !GameObject.Network.IsOwner || IsProxy )
 			return;
+
+		if ( IsRespawnBlocked() )
+		{
+			ShowTimedXpPopup( "CAN'T CHANGE ROLE WHILE RESPAWNING", XpPopupType.Error );
+			Log.Info( $"[ROLE MENU] BLOCKED during respawn | Player={GameObject.Name}" );
+			return;
+		}
 
 		if ( _roleUiInstance.IsValid() )
 		{
