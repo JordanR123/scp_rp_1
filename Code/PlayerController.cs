@@ -25,8 +25,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 {
 	[Sync( Flags = SyncFlags.FromHost )]
 	[Property] public PlayerRole CurrentRole { get; set; } = PlayerRole.DClass;
+
+	[Sync( Flags = SyncFlags.FromHost )]
+	public string NetworkPlayerName { get; set; } = "Player";
+
 	[Sync( Flags = SyncFlags.FromHost )]
 	public int PlayerLevel { get; set; }
+
 	[Sync( Flags = SyncFlags.FromHost )] 
 	public float Experience { get; set; }
 	[Property] public float MaxHealth { get; set; } = 100f;
@@ -93,6 +98,43 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Sync( Flags = SyncFlags.FromHost )] public bool IsReloading { get; set; } = false;
 
 	[Property, Group( "Weapon" )] public float ReloadTime { get; set; } = 1.8f;
+
+	private GameObject _nameTagObject;
+	private PlayerNameTag _nameTagComponent;
+
+
+	private void EnsureNetworkPlayerName()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		var ownerId = GameObject.Network.OwnerId;
+		var connection = Connection.Find( ownerId );
+
+		if ( connection is null )
+		{
+			NetworkPlayerName = $"Player {ownerId}";
+			return;
+		}
+
+		NetworkPlayerName = string.IsNullOrWhiteSpace( connection.DisplayName )
+			? $"Player {ownerId}"
+			: connection.DisplayName;
+	}
+
+	private void EnsureNameTag()
+	{
+		if ( _nameTagObject.IsValid() )
+			return;
+
+		_nameTagObject = new GameObject( true, $"{GameObject.Name}_NameTag" );
+		_nameTagObject.SetParent( GameObject );
+
+		_nameTagComponent = _nameTagObject.AddComponent<PlayerNameTag>();
+		_nameTagComponent.Player = this;
+		_nameTagComponent.HeightOffset = 82f;
+	}
+
 
 	private void OnSlotSynced( int oldValue, int newValue )
 	{
@@ -505,6 +547,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		LoadGame();
 		UpdateClearance();
 		UpdatePlayerVisuals();
+
+		EnsureNetworkPlayerName();
+		EnsureNameTag();
 
 		_yaw = GameObject.WorldRotation.Angles().yaw;
 		_pitch = 0f;
@@ -956,6 +1001,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		// This MUST run even when the host does not own this pawn.
 		if ( Networking.IsHost )
 		{
+			EnsureNetworkPlayerName();
 			UpdateReload();
 
 			if ( IsInvincible && _invincibleTimer <= 0f )
