@@ -91,7 +91,7 @@
       {
         "__type": "Sandbox.Rigidbody",
         "__guid": "386e438b-0ac5-47f4-bd8c-be0fa336e57e",
-        "__enabled": false,
+        "__enabled": true,
         "Flags": 0,
         "AngularDamping": 0,
         "EnableImpactDamage": true,

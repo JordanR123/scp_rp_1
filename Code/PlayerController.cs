@@ -982,7 +982,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( Input.Keyboard.Pressed( "G" ) )
 		{
-			Log.Info( $"[KEY TEST] Raw G pressed | Player={GameObject.Name}" );
+			RequestDropGunOnHost();
 		}
 
 		if ( Input.Keyboard.Pressed( "P" ) )
@@ -1948,6 +1948,56 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			PlayerRole.Researcher => 2,
 			_ => 0
 		};
+	}
+
+
+	[Rpc.Host]
+	private void RequestDropGunOnHost()
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( IsDead )
+			return;
+
+		if ( !HasGun )
+			return;
+
+		if ( Inventory.Count <= 1 || !Inventory[1].IsValid() )
+			return;
+
+		if ( !DroppedWeaponPickupPrefab.IsValid() )
+		{
+			Log.Warning( "[DROP] DroppedWeaponPickupPrefab is missing." );
+			return;
+		}
+
+		var gun = Inventory[1];
+
+		var pickup = DroppedWeaponPickupPrefab.Clone( Transform.World );
+		pickup.WorldPosition = GameObject.WorldPosition + GameObject.WorldRotation.Forward * 20f + Vector3.Up * 10f;
+		pickup.WorldRotation = GameObject.WorldRotation;
+		pickup.NetworkSpawn();
+
+		var pickupComp = pickup.Components.Get<OrionDroppedWeaponPickup>( FindMode.EverythingInSelfAndChildren );
+		if ( pickupComp.IsValid() )
+		{
+			pickupComp.SlotIndex = 1;
+			pickupComp.AmmoInMagazine = AmmoInMagazine;
+			pickupComp.WeaponName = gun.WeaponName;
+		}
+
+		HasGun = false;
+		AmmoInMagazine = 0;
+
+		if ( CurrentSlot == 1 )
+			EquipWeapon( 0 );
+		else
+			UpdateWeaponVisibility();
+
+		UpdateThirdPersonBodyPose();
+
+		Log.Info( $"[DROP] {GameObject.Name} dropped {gun.WeaponName}" );
 	}
 
 	public void SaveGame()
