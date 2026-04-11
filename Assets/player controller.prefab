@@ -263,7 +263,7 @@
         "ResearcherClothing": "clothing/researcher_labcoat.clothing",
         "RightHandAnchor": {
           "_type": "gameobject",
-          "go": "3da2ffd1-1eb7-49b3-bef7-30b5ecb8136a"
+          "go": "d9168e4b-bf24-4c34-8ecb-c1d8bf65e373"
         },
         "StandingEyeHeight": 64,
         "VoiceChat": {
@@ -414,7 +414,7 @@
             },
             "RenderType": "On",
             "Sequence": {
-              "Name": "SMG_2H_Reload_01",
+              "Name": "SMG_2H_Pose_Standing_01",
               "Looping": true,
               "Blending": false
             },
@@ -2065,205 +2065,7 @@
                 "NetworkTransmit": true,
                 "OwnerTransfer": 1,
                 "Components": [],
-                "Children": [
-                  {
-                    "__guid": "77ab113d-9d9c-4010-a80c-03f28f5c2b0b",
-                    "__version": 2,
-                    "__Prefab": "weapons/w_m4a1.prefab",
-                    "__PrefabInstancePatch": {
-                      "AddedObjects": [
-                        {
-                          "Id": {
-                            "Type": "Component",
-                            "IdValue": "bd7ac92e-2540-465b-811b-930f50d78617"
-                          },
-                          "Parent": {
-                            "Type": "GameObject",
-                            "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
-                          },
-                          "PreviousElement": {
-                            "Type": "Component",
-                            "IdValue": "7ab81615-cd38-4617-ba4b-b94a851ae551"
-                          },
-                          "ContainerProperty": "Components",
-                          "IsContainerArray": true,
-                          "Data": {
-                            "__type": "Sandbox.ModelRenderer",
-                            "__guid": "bd7ac92e-2540-465b-811b-930f50d78617",
-                            "__enabled": true,
-                            "Flags": 0,
-                            "BodyGroups": 171,
-                            "CreateAttachments": false,
-                            "LodOverride": null,
-                            "MaterialGroup": null,
-                            "MaterialOverride": null,
-                            "Materials": null,
-                            "Model": "models/weapons/sbox_assault_m4a1/w_m4a1.vmdl",
-                            "OnComponentDestroy": null,
-                            "OnComponentDisabled": null,
-                            "OnComponentEnabled": null,
-                            "OnComponentFixedUpdate": null,
-                            "OnComponentStart": null,
-                            "OnComponentUpdate": null,
-                            "RenderOptions": {
-                              "GameLayer": true,
-                              "OverlayLayer": false,
-                              "BloomLayer": false,
-                              "AfterUILayer": false
-                            },
-                            "RenderType": "On",
-                            "Tint": "1,1,1,1"
-                          }
-                        },
-                        {
-                          "Id": {
-                            "Type": "Component",
-                            "IdValue": "6c4e00c7-857b-4d0d-82fb-1b975feb810e"
-                          },
-                          "Parent": {
-                            "Type": "GameObject",
-                            "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
-                          },
-                          "PreviousElement": {
-                            "Type": "Component",
-                            "IdValue": "bd7ac92e-2540-465b-811b-930f50d78617"
-                          },
-                          "ContainerProperty": "Components",
-                          "IsContainerArray": true,
-                          "Data": {
-                            "__type": "Sandbox.ModelCollider",
-                            "__guid": "6c4e00c7-857b-4d0d-82fb-1b975feb810e",
-                            "__enabled": false,
-                            "Flags": 0,
-                            "ColliderFlags": 0,
-                            "Elasticity": null,
-                            "Friction": null,
-                            "IsTrigger": false,
-                            "Model": "models/weapons/sbox_assault_m4a1/w_m4a1.vmdl",
-                            "OnComponentDestroy": null,
-                            "OnComponentDisabled": null,
-                            "OnComponentEnabled": null,
-                            "OnComponentFixedUpdate": null,
-                            "OnComponentStart": null,
-                            "OnComponentUpdate": null,
-                            "OnObjectTriggerEnter": null,
-                            "OnObjectTriggerExit": null,
-                            "OnTriggerEnter": null,
-                            "OnTriggerExit": null,
-                            "RollingResistance": null,
-                            "Static": false,
-                            "Surface": null,
-                            "SurfaceVelocity": "0,0,0"
-                          }
-                        },
-                        {
-                          "Id": {
-                            "Type": "Component",
-                            "IdValue": "ea49b2a6-7727-4cb9-a9d6-0fbf1c2552d4"
-                          },
-                          "Parent": {
-                            "Type": "GameObject",
-                            "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
-                          },
-                          "PreviousElement": {
-                            "Type": "Component",
-                            "IdValue": "6c4e00c7-857b-4d0d-82fb-1b975feb810e"
-                          },
-                          "ContainerProperty": "Components",
-                          "IsContainerArray": true,
-                          "Data": {
-                            "__type": "Sandbox.Rigidbody",
-                            "__guid": "ea49b2a6-7727-4cb9-a9d6-0fbf1c2552d4",
-                            "__enabled": false,
-                            "Flags": 0,
-                            "AngularDamping": 0,
-                            "EnableImpactDamage": true,
-                            "EnhancedCcd": false,
-                            "Gravity": true,
-                            "GravityScale": 1,
-                            "ImpactDamage": 0,
-                            "LinearDamping": 0,
-                            "Locking": {
-                              "X": false,
-                              "Y": false,
-                              "Z": false,
-                              "Pitch": false,
-                              "Yaw": false,
-                              "Roll": false
-                            },
-                            "MassCenterOverride": "0,0,0",
-                            "MassOverride": 3,
-                            "MinImpactDamageSpeed": 500,
-                            "MotionEnabled": true,
-                            "OnComponentDestroy": null,
-                            "OnComponentDisabled": null,
-                            "OnComponentEnabled": null,
-                            "OnComponentFixedUpdate": null,
-                            "OnComponentStart": null,
-                            "OnComponentUpdate": null,
-                            "OverrideMassCenter": false,
-                            "RigidbodyFlags": 0,
-                            "StartAsleep": false
-                          }
-                        }
-                      ],
-                      "RemovedObjects": [
-                        {
-                          "Id": {
-                            "Type": "Component",
-                            "IdValue": "fb6246f9-6f32-43f8-b67d-1ef028afc4c4"
-                          }
-                        },
-                        {
-                          "Id": {
-                            "Type": "Component",
-                            "IdValue": "bf482dd4-3349-4f4d-9f9f-3a065c45522f"
-                          }
-                        },
-                        {
-                          "Id": {
-                            "Type": "Component",
-                            "IdValue": "386e438b-0ac5-47f4-bd8c-be0fa336e57e"
-                          }
-                        }
-                      ],
-                      "PropertyOverrides": [
-                        {
-                          "Target": {
-                            "Type": "GameObject",
-                            "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
-                          },
-                          "Property": "Position",
-                          "Value": "7.9604,-3.047769,-0.7135828"
-                        },
-                        {
-                          "Target": {
-                            "Type": "GameObject",
-                            "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
-                          },
-                          "Property": "Rotation",
-                          "Value": "-0.7418108,-0.008837439,0.04963155,0.6687117"
-                        },
-                        {
-                          "Target": {
-                            "Type": "GameObject",
-                            "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
-                          },
-                          "Property": "Scale",
-                          "Value": "1.2,1.2,1.2"
-                        }
-                      ],
-                      "MovedObjects": []
-                    },
-                    "__PrefabIdToInstanceId": {
-                      "10120b84-aae6-47b7-b34b-3d224562ac91": "77ab113d-9d9c-4010-a80c-03f28f5c2b0b",
-                      "7ab81615-cd38-4617-ba4b-b94a851ae551": "f98c4f67-8d9b-4e12-bfaa-bb3184a1c4d8",
-                      "fb6246f9-6f32-43f8-b67d-1ef028afc4c4": "a51d07ac-000f-4180-a4f0-b0048f35c53f",
-                      "bf482dd4-3349-4f4d-9f9f-3a065c45522f": "f65a79cc-ca82-48eb-b4bc-6240f551b179",
-                      "386e438b-0ac5-47f4-bd8c-be0fa336e57e": "7d7bd5ea-c41b-46d1-bad1-5322c0aca8f4"
-                    }
-                  }
-                ]
+                "Children": []
               },
               {
                 "__guid": "e8690968-77fa-4b63-a79c-242391ab6a54",
@@ -2778,6 +2580,187 @@
                 "__PrefabIdToInstanceId": {
                   "6b565be3-3f67-424a-8de5-3d0f18eaf935": "1996c473-f876-4cf2-889b-b07d2fab8e9a",
                   "c932c26f-6419-4041-96db-aaea1503f5e1": "61e6818b-222b-45fb-8577-fa900751f414"
+                }
+              },
+              {
+                "__guid": "77ab113d-9d9c-4010-a80c-03f28f5c2b0b",
+                "__version": 2,
+                "__Prefab": "weapons/w_m4a1.prefab",
+                "__PrefabInstancePatch": {
+                  "AddedObjects": [
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "bd7ac92e-2540-465b-811b-930f50d78617"
+                      },
+                      "Parent": {
+                        "Type": "GameObject",
+                        "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
+                      },
+                      "PreviousElement": {
+                        "Type": "Component",
+                        "IdValue": "7ab81615-cd38-4617-ba4b-b94a851ae551"
+                      },
+                      "ContainerProperty": "Components",
+                      "IsContainerArray": true,
+                      "Data": {
+                        "__type": "Sandbox.ModelRenderer",
+                        "__guid": "bd7ac92e-2540-465b-811b-930f50d78617",
+                        "__enabled": true,
+                        "Flags": 0,
+                        "BodyGroups": 171,
+                        "CreateAttachments": false,
+                        "LodOverride": null,
+                        "MaterialGroup": null,
+                        "MaterialOverride": null,
+                        "Materials": null,
+                        "Model": "models/weapons/sbox_assault_m4a1/w_m4a1.vmdl",
+                        "OnComponentDestroy": null,
+                        "OnComponentDisabled": null,
+                        "OnComponentEnabled": null,
+                        "OnComponentFixedUpdate": null,
+                        "OnComponentStart": null,
+                        "OnComponentUpdate": null,
+                        "RenderOptions": {
+                          "GameLayer": true,
+                          "OverlayLayer": false,
+                          "BloomLayer": false,
+                          "AfterUILayer": false
+                        },
+                        "RenderType": "On",
+                        "Tint": "1,1,1,1"
+                      }
+                    },
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "6c4e00c7-857b-4d0d-82fb-1b975feb810e"
+                      },
+                      "Parent": {
+                        "Type": "GameObject",
+                        "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
+                      },
+                      "PreviousElement": {
+                        "Type": "Component",
+                        "IdValue": "bd7ac92e-2540-465b-811b-930f50d78617"
+                      },
+                      "ContainerProperty": "Components",
+                      "IsContainerArray": true,
+                      "Data": {
+                        "__type": "Sandbox.ModelCollider",
+                        "__guid": "6c4e00c7-857b-4d0d-82fb-1b975feb810e",
+                        "__enabled": false,
+                        "Flags": 0,
+                        "ColliderFlags": 0,
+                        "Elasticity": null,
+                        "Friction": null,
+                        "IsTrigger": false,
+                        "Model": "models/weapons/sbox_assault_m4a1/w_m4a1.vmdl",
+                        "OnComponentDestroy": null,
+                        "OnComponentDisabled": null,
+                        "OnComponentEnabled": null,
+                        "OnComponentFixedUpdate": null,
+                        "OnComponentStart": null,
+                        "OnComponentUpdate": null,
+                        "OnObjectTriggerEnter": null,
+                        "OnObjectTriggerExit": null,
+                        "OnTriggerEnter": null,
+                        "OnTriggerExit": null,
+                        "RollingResistance": null,
+                        "Static": false,
+                        "Surface": null,
+                        "SurfaceVelocity": "0,0,0"
+                      }
+                    },
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "ea49b2a6-7727-4cb9-a9d6-0fbf1c2552d4"
+                      },
+                      "Parent": {
+                        "Type": "GameObject",
+                        "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
+                      },
+                      "PreviousElement": {
+                        "Type": "Component",
+                        "IdValue": "6c4e00c7-857b-4d0d-82fb-1b975feb810e"
+                      },
+                      "ContainerProperty": "Components",
+                      "IsContainerArray": true,
+                      "Data": {
+                        "__type": "Sandbox.Rigidbody",
+                        "__guid": "ea49b2a6-7727-4cb9-a9d6-0fbf1c2552d4",
+                        "__enabled": false,
+                        "Flags": 0,
+                        "AngularDamping": 0,
+                        "EnableImpactDamage": true,
+                        "EnhancedCcd": false,
+                        "Gravity": true,
+                        "GravityScale": 1,
+                        "ImpactDamage": 0,
+                        "LinearDamping": 0,
+                        "Locking": {
+                          "X": false,
+                          "Y": false,
+                          "Z": false,
+                          "Pitch": false,
+                          "Yaw": false,
+                          "Roll": false
+                        },
+                        "MassCenterOverride": "0,0,0",
+                        "MassOverride": 3,
+                        "MinImpactDamageSpeed": 500,
+                        "MotionEnabled": true,
+                        "OnComponentDestroy": null,
+                        "OnComponentDisabled": null,
+                        "OnComponentEnabled": null,
+                        "OnComponentFixedUpdate": null,
+                        "OnComponentStart": null,
+                        "OnComponentUpdate": null,
+                        "OverrideMassCenter": false,
+                        "RigidbodyFlags": 0,
+                        "StartAsleep": false
+                      }
+                    }
+                  ],
+                  "RemovedObjects": [
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "fb6246f9-6f32-43f8-b67d-1ef028afc4c4"
+                      }
+                    },
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "bf482dd4-3349-4f4d-9f9f-3a065c45522f"
+                      }
+                    },
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "386e438b-0ac5-47f4-bd8c-be0fa336e57e"
+                      }
+                    }
+                  ],
+                  "PropertyOverrides": [
+                    {
+                      "Target": {
+                        "Type": "GameObject",
+                        "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
+                      },
+                      "Property": "Position",
+                      "Value": "0,0,-5"
+                    }
+                  ],
+                  "MovedObjects": []
+                },
+                "__PrefabIdToInstanceId": {
+                  "10120b84-aae6-47b7-b34b-3d224562ac91": "77ab113d-9d9c-4010-a80c-03f28f5c2b0b",
+                  "7ab81615-cd38-4617-ba4b-b94a851ae551": "f98c4f67-8d9b-4e12-bfaa-bb3184a1c4d8",
+                  "fb6246f9-6f32-43f8-b67d-1ef028afc4c4": "a51d07ac-000f-4180-a4f0-b0048f35c53f",
+                  "bf482dd4-3349-4f4d-9f9f-3a065c45522f": "f65a79cc-ca82-48eb-b4bc-6240f551b179",
+                  "386e438b-0ac5-47f4-bd8c-be0fa336e57e": "7d7bd5ea-c41b-46d1-bad1-5322c0aca8f4"
                 }
               }
             ]
