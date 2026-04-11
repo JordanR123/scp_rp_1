@@ -156,11 +156,30 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( AmmoInMagazine >= gun.MagazineSize )
 			return;
 
+		bool emptyReload = AmmoInMagazine <= 0;
+
 		IsReloading = true;
 		_reloadTimer = ReloadTime;
 
+		PlayReloadEffects( slotIndex, emptyReload );
+
 		Log.Info( $"[RELOAD START HOST] Player={GameObject.Name} | Ammo={AmmoInMagazine}/{gun.MagazineSize}" );
 	}
+
+	[Rpc.Broadcast]
+	private void PlayReloadEffects( int slotIndex, bool emptyReload )
+	{
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+			return;
+
+		var weapon = Inventory[slotIndex];
+		if ( !weapon.IsValid() )
+			return;
+
+		weapon.PlayReloadAnimation( emptyReload );
+	}
+
+
 
 	private void UpdateReload()
 	{

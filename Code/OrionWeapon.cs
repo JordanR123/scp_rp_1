@@ -3,9 +3,15 @@ using Sandbox;
 public class OrionWeapon : Component
 {
 	[Property] public string WeaponName { get; set; } = "Weapon";
-	
+
 	[Property] public GameObject ViewModel { get; set; }
 	[Property] public string AttackTrigger { get; set; } = "b_attack";
+
+	[Property, Group( "Animation" )] public string ReloadTrigger { get; set; } = "b_reload";
+	[Property, Group( "Animation" )] public string EmptyBool { get; set; } = "b_empty";
+	[Property, Group( "Animation" )] public string ReloadSpeedFloat { get; set; } = "speed_reload";
+	[Property, Group( "Animation" )] public float ReloadAnimSpeed { get; set; } = 1.0f;
+
 	[Property] public Vector3 ViewOffset { get; set; } = new Vector3( 10, 10, -10 );
 
 	[Property] public GameObject WorldModel { get; set; }
@@ -19,8 +25,42 @@ public class OrionWeapon : Component
 
 	[Property, Group( "Audio" )] public SoundEvent ShootSound { get; set; }
 
-	// Back to GameObject; we will put a Decal Renderer on this prefab
 	[Property] public GameObject ImpactDecalPrefab { get; set; }
+
+	private SkinnedModelRenderer GetViewModelRenderer()
+	{
+		if ( !ViewModel.IsValid() )
+			return null;
+
+		return ViewModel.Components.Get<SkinnedModelRenderer>( FindMode.EverythingInSelfAndChildren );
+	}
+
+	private SkinnedModelRenderer GetWorldModelRenderer()
+	{
+		if ( !WorldModel.IsValid() )
+			return null;
+
+		return WorldModel.Components.Get<SkinnedModelRenderer>( FindMode.EverythingInSelfAndChildren );
+	}
+
+	public void PlayReloadAnimation( bool emptyReload )
+	{
+		var vm = GetViewModelRenderer();
+		if ( vm.IsValid() )
+		{
+			vm.Set( EmptyBool, emptyReload );
+			vm.Set( ReloadSpeedFloat, ReloadAnimSpeed );
+			vm.Set( ReloadTrigger, true );
+		}
+
+		var wm = GetWorldModelRenderer();
+		if ( wm.IsValid() )
+		{
+			wm.Set( EmptyBool, emptyReload );
+			wm.Set( ReloadSpeedFloat, ReloadAnimSpeed );
+			wm.Set( ReloadTrigger, true );
+		}
+	}
 
 	public void SetFirstPersonVisible( bool visible )
 	{
