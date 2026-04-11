@@ -374,17 +374,43 @@
     string RoleLower => Role.Replace( " ", "" ).ToLower();
     string RoleLabel => Role.Replace( "Class", " CLASS" ).ToUpper();
 
-    float LevelProgress
-    {
-        get
+        float LevelProgress
         {
-            var p = GetPlayer( true );
-            if ( p == null ) return 0f;
+            get
+            {
+                var p = GetPlayer( true );
+                if ( p == null ) return 0f;
 
-            float targetXp = p.PlayerLevel * 600f;
-            return Math.Clamp( (p.Experience / targetXp) * 100f, 0f, 100f );
+                float currentLevelStartXp = 0f;
+                float nextLevelXp = 600f;
+
+                if ( p.PlayerLevel == 1 )
+                {
+                    currentLevelStartXp = 0f;
+                    nextLevelXp = 600f;
+                }
+                else if ( p.PlayerLevel == 2 )
+                {
+                    currentLevelStartXp = 600f;
+                    nextLevelXp = 1200f;
+                }
+                else if ( p.PlayerLevel == 3 )
+                {
+                    currentLevelStartXp = 1200f;
+                    nextLevelXp = 1800f;
+                }
+                else
+                {
+                    currentLevelStartXp = (p.PlayerLevel - 1) * 600f;
+                    nextLevelXp = p.PlayerLevel * 600f;
+                }
+
+                float xpIntoCurrentLevel = p.Experience - currentLevelStartXp;
+                float xpNeededThisLevel = nextLevelXp - currentLevelStartXp;
+
+                return Math.Clamp( (xpIntoCurrentLevel / xpNeededThisLevel) * 100f, 0f, 100f );
+            }
         }
-    }
 
         bool _wasChatOpen;
         bool _blockChatHotkeysUntilReleased;
