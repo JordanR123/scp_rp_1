@@ -212,11 +212,19 @@
             LocalPlayer.Health,
             LocalPlayer.MaxHealth,
             LocalPlayer.IsDead,
+            LocalPlayer.PlayerLevel
+        );
+
+        int playerHashB = HashCode.Combine(
+            LocalPlayer.Experience,
+            LocalPlayer.ShowXpPopup,
+            LocalPlayer.XpPopupMessage,
             damageBucket
         );
 
         int playerHash = HashCode.Combine(
             playerHashA,
+            playerHashB,
             hitBucket
         );
 

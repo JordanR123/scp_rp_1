@@ -64,22 +64,16 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property, Group( "Visuals" )] public CitizenAnimationHelper BodyAnimator { get; set; }
 	[Property, Group( "Visuals" )] public GameObject RightHandAnchor { get; set; }
 
-	[Property, Group( "UI" )] public OrionHUDState HudState { get; set; }
-	[Property, Group( "UI" )] public OrionChatManager ChatManager { get; set; }
 	[Property, Group( "Voice" )] public Voice VoiceChat { get; set; }
 
 	public bool IsVoiceKeyHeld { get; set; }
 
 	private TimeUntil _invincibleTimer;
 
-	// ASSIGN THESE 3 BODY OBJECTS IN THE INSPECTOR
-	// Each one should already have the correct clothing/model set up on it
 	[Property] public CameraComponent PlayerCamera { get; set; }
 
 	[Property, Group( "Death" )] public GameObject RagdollPrefab { get; set; }
 
-
-	// Weapon System
 	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
 	public OrionWeapon ActiveWeapon => GetWeaponInSlot( CurrentSlot );
 
@@ -97,7 +91,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		Log.Info( $"[SYNC DEBUG] CurrentSlot arrived! Changed from {oldValue} to {newValue} on {GameObject.Name}. IsProxy: {IsProxy}" );
 
-		// Force the visual update now that we actually have the correct slot number
 		UpdateWeaponVisibility();
 		UpdateThirdPersonBodyPose();
 	}
@@ -111,9 +104,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
-
 	private TimeUntil _reloadTimer;
-
 
 	private OrionWeapon GetWeaponInSlot( int slot )
 	{
@@ -204,8 +195,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		weapon.PlayReloadAnimation( emptyReload );
 	}
 
-
-
 	private void UpdateReload()
 	{
 		if ( !Networking.IsHost )
@@ -256,7 +245,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 
 	//Chat and Voice
-
 	public bool IsTypingChat
 	{
 		get
@@ -335,24 +323,31 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		Log.Info( $"[CHAT] Submitted: {text}" );
 	}
 
+	private OrionHUDState _hudState;
+	private OrionChatManager _chatManager;
+
 	private OrionHUDState ResolveHudState()
 	{
-		if ( HudState.IsValid() )
-			return HudState;
+		if ( _hudState.IsValid() )
+			return _hudState;
 
-		return Scene.GetAllComponents<OrionHUDState>()
+		_hudState = Scene.GetAllComponents<OrionHUDState>()
 			.FirstOrDefault( x => x.IsValid() );
+
+		return _hudState;
 	}
 
 	private OrionChatManager ResolveChatManager()
 	{
-		if ( ChatManager.IsValid() )
-			return ChatManager;
+		if ( _chatManager.IsValid() )
+			return _chatManager;
 
-		return Scene.GetAllComponents<OrionChatManager>()
+		_chatManager = Scene.GetAllComponents<OrionChatManager>()
 			.FirstOrDefault( x => x.IsValid() );
-	}
 
+		return _chatManager;
+	}
+	//End of Chat and Voice
 
 
 	// XP System
@@ -464,6 +459,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		return true;
 	}
 
+	// End of XP System
+
 	public float TimeSinceDeath { get; set; } = 0f;
 	private Vector3 _deathLocation;
 	private Angles _deathLookAngles;
@@ -496,7 +493,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		RefreshLocalOwnershipState();
 
-
 		if ( !VoiceChat.IsValid() )
 		{
 			VoiceChat = Components.Get<Voice>( FindMode.EverythingInSelfAndChildren );
@@ -524,7 +520,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			ShowRoleSelect();
 		}
 	}
-
 
 	public void ChooseRole( PlayerRole role )
 	{
@@ -565,7 +560,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		Log.Info( $"[ROLE HOST DEBUG] Completed role change for {GameObject.Name} -> {role}" );
 	}
 
-
 	[Rpc.Owner]
 	public void ApplySpawnOnOwner( Vector3 position, Rotation rotation )
 	{
@@ -588,7 +582,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			movementController.EyeAngles = new Angles( _pitch, _yaw, 0f );
 		}
 
-		// Force body yaw to the same value we use for the camera
 		GameObject.WorldRotation = Rotation.FromYaw( _yaw );
 
 		_deathLocation = position;
@@ -645,11 +638,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
-
-
 	private void RefreshLocalOwnershipState()
 	{
-		// If we are NOT a proxy, we are the local player
 		bool isLocal = !IsProxy;
 
 		if ( PlayerCamera.IsValid() )
@@ -933,7 +923,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			_debugBuildMarkerTimer = 3f;
 		}
 
-
 		// Host-authoritative timers/simulation.
 		// This MUST run even when the host does not own this pawn.
 		if ( Networking.IsHost )
@@ -945,6 +934,15 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				IsInvincible = false;
 				Log.Info( $"[INVINCIBILITY END] {GameObject.Name}" );
 			}
+
+			if ( !IsDead )
+			{
+				Experience += Time.Delta;
+				CheckLevelUp();
+			}
+
+
+
 		}
 		UpdateThirdPersonBodyPose();
 
@@ -1039,21 +1037,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		NetworkLookAngles = new Angles( _pitch, _yaw, 0f );
 		NetworkEyePosition = GetEyeWorldPosition();
 
-		Experience += Time.Delta;
-		CheckLevelUp();
-
-		if ( PlayerLevel == 1 && Experience >= 600f )
-		{
-			PlayerLevel = 2;
-			SaveGame();
-		}
-		else if ( PlayerLevel == 2 && Experience >= 1200f )
-		{
-			PlayerLevel = 3;
-			SaveGame();
-			Log.Info( "[PROGRESSION] Level 3 reached!" );
-		}
-
 
 		if ( Input.Pressed( "use" ) )
 			HandleInteraction();
@@ -1132,7 +1115,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				break;
 
 			case PlayerRole.DClass:
-				HasGun = true;
+				HasGun = false;
 				FillMagazineFromWeapon();
 				EquipWeapon( 0 ); // Give gun for testing
 				break;
@@ -1222,7 +1205,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( Input.Pressed( "attack1" ) && ActiveWeapon.IsValid() && PlayerCamera.IsValid() )
 		{
-			// No firing while reloading. Revolutionary technology.
+			// No firing while reloading.
 			if ( CurrentSlot == 1 )
 			{
 				if ( IsReloading )
@@ -1251,7 +1234,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			var fireOrigin = PlayerCamera.WorldPosition;
 			var fireDirection = PlayerCamera.WorldRotation.Forward;
 
-			var screenCenterRay = PlayerCamera.ScreenNormalToRay( 0.5f ); // The mathematical center of the screen
+			var screenCenterRay = PlayerCamera.ScreenNormalToRay( 0.5f );
 			Log.Info( $"[DEBUG] Screen Center Forward: {screenCenterRay.Forward}" );
 			Log.Info( $"[DEBUG] Camera Component Forward: {PlayerCamera.WorldRotation.Forward}" );
 			Log.Info( $"[DEBUG] Calculated Pitch/Yaw Forward: {(Rotation.FromYaw( _yaw ) * Rotation.FromPitch( _pitch )).Forward}" );
@@ -1307,12 +1290,37 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	private void RequestFireOnHost( Vector3 origin, Vector3 direction, int slotIndex )
 	{
 
+		if ( IsDead )
+		{
+			Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} is dead." );
+			return;
+		}
+
 
 		Log.Info(
 			$"[HOST FIRE RPC RECEIVED] Shooter={GameObject.Name} | OwnerId={GameObject.Network.OwnerId} | " +
 			$"Slot={slotIndex} | Origin={origin} | Direction={direction}"
 		);
 
+
+
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+		{
+			Log.Warning(
+				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} sent invalid slot {slotIndex}. InventoryCount={Inventory.Count}"
+			);
+			return;
+		}
+
+
+		var weapon = Inventory[slotIndex];
+		if ( !weapon.IsValid() )
+		{
+			Log.Warning(
+				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} has invalid weapon in slot {slotIndex}."
+			);
+			return;
+		}
 
 		if ( slotIndex == 1 )
 		{
@@ -1348,29 +1356,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			}
 		}
 
-		if ( IsDead )
-		{
-			Log.Warning( $"[HOST FIRE BLOCKED] Shooter={GameObject.Name} is dead." );
-			return;
-		}
-
-		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
-		{
-			Log.Warning(
-				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} sent invalid slot {slotIndex}. InventoryCount={Inventory.Count}"
-			);
-			return;
-		}
-
-		var weapon = Inventory[slotIndex];
-		if ( !weapon.IsValid() )
-		{
-			Log.Warning(
-				$"[HOST FIRE BLOCKED] Shooter={GameObject.Name} has invalid weapon in slot {slotIndex}."
-			);
-			return;
-		}
-
 		PlayAttackEffects( slotIndex, GameObject.WorldPosition );
 
 		Log.Info(
@@ -1378,7 +1363,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			$"Damage={weapon.Damage} | Range={weapon.Range} | HasGun={HasGun}"
 		);
 
-		// If slot 1 is gun, make sure the player really has it.
 		if ( slotIndex == 1 && !HasGun )
 		{
 			Log.Warning(
@@ -1581,8 +1565,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private void UpdateWeaponVisibility()
 	{
-		// FIX: Instead of just !IsDead (which is synced), 
-		// check if we are actually the local player and the camera is active.
+
 		bool isLocalFirstPerson = !IsProxy && PlayerCamera.IsValid() && PlayerCamera.Enabled;
 
 		Log.Info( $"[VISIBILITY DEBUG] Updating visibility. Slot={CurrentSlot}, FirstPerson={isLocalFirstPerson}, IsDead={IsDead}" );
@@ -1594,11 +1577,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 			bool isActive = i == CurrentSlot;
 
-			// Reset visibility
 			weapon.SetFirstPersonVisible( false );
 			weapon.SetThirdPersonVisible( false );
 
-			// Standardize Parenting (Prevents the "gun on floor" glitch)
 			if ( RightHandAnchor.IsValid() )
 			{
 				weapon.GameObject.Parent = RightHandAnchor;
@@ -1610,7 +1591,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			{
 				if ( isLocalFirstPerson )
 				{
-					// We are the local player, show the high-quality viewmodel
 					weapon.SetFirstPersonVisible( true );
 
 					if ( weapon.ViewModel.IsValid() )
@@ -1622,7 +1602,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				}
 				else
 				{
-					// We are looking at another player (or our own corpse), show world model
 					weapon.SetThirdPersonVisible( true );
 
 					if ( weapon.ViewModel.IsValid() )
@@ -1635,7 +1614,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 
-
 	private void DestroyViewModel()
 	{
 		if ( _viewModelInstance.IsValid() )
@@ -1644,8 +1622,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			_viewModelInstance = null;
 		}
 	}
-
-
 
 
 	public void OnKilled( in DamageInfo damage )
@@ -1669,7 +1645,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		Health = newHealth;
 		IsDead = newIsDead;
 
-		// Only update visuals if death state changed
 		if ( newIsDead )
 		{
 			UpdateWeaponVisibility();
@@ -1838,11 +1813,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			PlayerLevel = 2;
 			leveledUp = true;
+			Log.Info( "[PROGRESSION] Level 2 reached!" );
 		}
 		else if ( PlayerLevel == 2 && Experience >= 1200f )
 		{
 			PlayerLevel = 3;
 			leveledUp = true;
+			Log.Info( "[PROGRESSION] Level 3 reached!" );
 		}
 
 		if ( leveledUp )
@@ -1932,8 +1909,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			_ => 0
 		};
 	}
-
-
 
 	public void SaveGame()
 	{
