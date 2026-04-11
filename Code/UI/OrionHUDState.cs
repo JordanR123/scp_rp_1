@@ -10,6 +10,9 @@ public class OrionHUDState : Component
 	public bool ShowRoleSelect { get; set; }
 	public bool ShowRespawn { get; set; }
 
+	public bool ShowPickupHint { get; set; }
+	public string PickupHintText { get; set; } = "";
+
 	// Chat state
 	public bool ShowChat { get; set; }
 	public string ChatDraft { get; set; } = "";

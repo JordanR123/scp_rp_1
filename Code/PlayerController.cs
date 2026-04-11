@@ -1008,6 +1008,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
 
+		UpdatePickupHint();
+
 
 		if ( IsTypingChat )
 		{
@@ -1952,6 +1954,40 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		pickup.TryPickup( this );
 	}
+
+
+	private void UpdatePickupHint()
+	{
+		if ( !PlayerCamera.IsValid() )
+			return;
+
+		var hud = ResolveHudState();
+		if ( !hud.IsValid() )
+			return;
+
+		var tr = Scene.Trace.Ray(
+				PlayerCamera.WorldPosition,
+				PlayerCamera.WorldPosition + PlayerCamera.WorldRotation.Forward * 150f )
+			.IgnoreGameObjectHierarchy( GameObject )
+			.Run();
+
+		if ( tr.Hit && tr.GameObject.IsValid() )
+		{
+			var pickup = tr.GameObject.Components.Get<OrionDroppedWeaponPickup>( FindMode.EverythingInSelfAndAncestors );
+
+			if ( pickup.IsValid() && pickup.CanBePickedUp )
+			{
+				hud.ShowPickupHint = true;
+				hud.PickupHintText = $"Pickup {pickup.WeaponName} (E)";
+				return;
+			}
+		}
+
+		// Not looking at pickup
+		hud.ShowPickupHint = false;
+		hud.PickupHintText = "";
+	}
+
 
 	public void UpdateClearance()
 	{

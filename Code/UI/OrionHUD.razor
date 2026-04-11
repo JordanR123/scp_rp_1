@@ -42,6 +42,15 @@
 	        </div>
         }
 
+
+        @if ( HudState?.ShowPickupHint ?? false )
+        {
+	        <div class="pickup-hint">
+		        @HudState.PickupHintText
+	        </div>
+        }
+
+
         @* Bottom Left Stack (1.1x Scale) *@
         <div class="bottom-left-stack upscale-hud">
             
