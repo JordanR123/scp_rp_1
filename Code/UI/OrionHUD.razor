@@ -8,134 +8,87 @@
     <div class="hud-root @(IsDead ? "is-dead" : "")">
 
         <div class="damage-vignette" @ref="DamageVignette"></div>
-
         <div class="crosshair-dot"></div>
 
-        <div class="hitmarker @(TimeSinceConfirmedHit < 0.15f ? "visible" : "")">
-    <div class="mark lt"></div>
-    <div class="mark rt"></div>
-    <div class="mark lb"></div>
-    <div class="mark rb"></div>
-    </div>
+        @* Top Center: Lockdown Banner *@
+        @if (ShowDenied)
+        {
+            <div class="lockdown-banner">
+                <label class="banner-text">LOCKDOWN IN PROGRESS</label>
+            </div>
+        }
 
+        @* Bottom Left Stack (1.1x Scale) *@
+        <div class="bottom-left-stack upscale-hud">
+            
+            @* Controls Bar - Dark text on white keys *@
+            <div class="controls-bar">
+                <div class="control-item"><div class="key">ENTER</div><label>Chat</label></div>
+                <div class="control-item"><div class="key">TAB</div><label>Menu</label></div>
+                <div class="control-item"><div class="key">B</div><label>XP</label></div>
+                <div class="control-item"><div class="key">V</div><label>Voice</label></div>
+            </div>
 
-        <div class="top-bar">
-            <div class="player-card">
-                <div class="player-main">
-                    <label class="player-name">@LocalName</label>
+            @* Player Identity Card (Widened to 480px) *@
+            <div class="player-identity-card">
+                <img class="steam-avatar" src="avatar:@Game.SteamId" />
 
-                    <div class="badge-row">
-                        <div class="role-badge @RoleLower">
-                            <label>@RoleLabel</label>
+                <div class="identity-info">
+                    <div class="name-row">
+                        <label class="player-name">@LocalName</label>
+                        <div class="badge-group">
+                            @* Combined Progression Badge *@
+                            <div class="level-badge">LVL @Level (@((int)LevelProgress)%)</div>
+                            @* Clearance Badge *@
+                            <div class="clearance-badge">CL @Clearance</div>
                         </div>
+                    </div>
 
-                        <div class="clearance-badge">
-                            <label class="badge-title">CLEARANCE</label>
-                            <label class="badge-value">LVL @Clearance</label>
+                    @* Role and Health Section *@
+                    <div class="vitals-row">
+                        <div class="role-container">
+                             <div class="role-tag @RoleLower">@RoleLabel</div>
+                        </div>
+                        
+                        <div class="health-container">
+                            <div class="health-bar-bg">
+                                <div class="health-bar-fill" style="width: @(Health)%"></div>
+                            </div>
+                            <label class="health-text">@Health</label>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="progress-card">
-                <label class="eyebrow">PROGRESSION</label>
-                <label class="level-value">LEVEL @Level</label>
-                <div class="progress-track">
-                    <div class="progress-fill" style="width: @(LevelProgress)%"></div>
-                </div>
-            </div>
         </div>
 
-        <div class="bottom-bar">
-            <div class="health-card">
-                <div class="health-top">
-                    <label class="eyebrow">VITAL SIGNS</label>
-                    <label class="health-value">@Health%</label>
-                </div>
-
-                <div class="bar-track health-track">
-                    <div class="bar-fill health-fill" style="width: @(Health)%"></div>
-                </div>
-            </div>
-        </div>
-
-
-        @if ( ShowDenied )
+        @* Bottom Right: Ammo *@
+        @if (LocalPlayer is not null && LocalPlayer.IsGunEquipped)
         {
-            <div class="access-denied-popup">
-                <label class="denied-title">ACCESS DENIED</label>
-                <label class="denied-sub">INSUFFICIENT CLEARANCE</label>
+            <div class="ammo-card upscale-hud">
+                <div class="ammo-numbers">
+                    <span class="current">@LocalPlayer.CurrentAmmo</span>
+                    <span class="slash">/</span>
+                    <span class="max">@LocalPlayer.CurrentMagazineSize</span>
+                </div>
             </div>
         }
 
-
-        @if ( ShowXpGiftPopup )
-{
-    <div class="xp-popup">
-        <label>@XpGiftPopupMessage</label>
-    </div>
-}
-
-
-        @if ( LocalPlayer is not null && LocalPlayer.IsGunEquipped )
-{
-	<div class="ammo">
-		<span class="current">@LocalPlayer.CurrentAmmo</span>
-		<span class="slash">/</span>
-		<span class="max">@LocalPlayer.CurrentMagazineSize</span>
-	</div>
-}
-
-
-        @if ( ChatMessages.Count > 0 || IsChatOpen )
-{
-    <div class="chat-box @(IsChatOpen ? "open" : "")">
-        <div class="chat-log">
-            @foreach ( var msg in ChatMessages )
-            {
-                <div class="chat-line">@msg</div>
-            }
-        </div>
-
-        @if ( IsChatOpen )
+        @* Chat Logic *@
+        @if (ChatMessages.Count > 0 || IsChatOpen)
         {
-            <OrionChatTextEntry class="chat-input" @ref="ChatInput" />
-        }
-    </div>
-}
-
-        @if ( HudState?.IsVoiceKeyHeld ?? false )
-{
-    <div class="voice-indicator">
-        <label>VOICE: ON</label>
-    </div>
-}
-
-
-         @if ( IsDead )
-        {
-            var p = GetLocalPlayer();
-            var timeLeft = Math.Max( 0, (int)(10 - (p?.TimeSinceDeath ?? 0)) );
-
-            <div class="death-screen">
-                <div class="death-overlay">
-                    <label class="death-title">TERMINATED</label>
-                    <label class="death-sub">SUBJECT: @LocalName</label>
-
-                    @if ( timeLeft > 0 )
+            <div class="chat-container @(IsChatOpen ? "open" : "")">
+                <div class="chat-log">
+                    @foreach (var msg in ChatMessages)
                     {
-                        <label class="death-sub">RESPAWN AVAILABLE IN @timeLeft</label>
-                    }
-                    else
-                    {
-                        <button class="respawn-button" @onclick=@RespawnLocalPlayer>
-                            RESPAWN NOW
-                        </button>
+                        <div class="chat-line">@msg</div>
                     }
                 </div>
+                @if (IsChatOpen)
+                {
+                    <OrionChatTextEntry class="chat-input" @ref="ChatInput" />
+                }
             </div>
         }
-
     </div>
 </root>
 

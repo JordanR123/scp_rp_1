@@ -1,530 +1,217 @@
 ﻿.root {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    pointer-events: none;
-    font-family: Arial;
+    top: 0px; left: 0px; right: 0px; bottom: 0px;
+    font-family: 'Poppins', 'Roboto', 'Segoe UI', sans-serif;
     color: white;
 }
 
-.hud-root {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
+.upscale-hud {
+    transform: scale(1);
+    transform-origin: left bottom;
 }
 
-.damage-vignette {
+.bottom-left-stack {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    pointer-events: none;
-    background-color: transparent;
-    border-top-width: 18px;
-    border-right-width: 18px;
-    border-bottom-width: 18px;
-    border-left-width: 18px;
-    border-top-color: rgba(140, 0, 0, 0.95);
-    border-right-color: rgba(140, 0, 0, 0.95);
-    border-bottom-color: rgba(140, 0, 0, 0.95);
-    border-left-color: rgba(140, 0, 0, 0.95);
-    opacity: 0;
-}
-
-.top-bar {
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    right: 18px;
+    left: 30px;
+    bottom: 30px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-}
-
-.bottom-bar {
-    position: absolute;
-    left: 18px;
-    bottom: 18px;
-}
-
-.player-card,
-.progress-card,
-.health-card,
-.access-denied-popup,
-.death-overlay {
-    background-color: rgba(7, 14, 22, 0.88);
-    border: 1px solid rgba(130, 155, 185, 0.18);
-    border-radius: 18px;
-    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.03);
-}
-
-.player-card {
-    min-width: 200px;
-    max-width: 400px;
-    padding: 14px 16px;
-}
-
-.player-main {
-    display: flex;
-    /* Changed from row to column to stack elements vertically */
     flex-direction: column;
-    align-items: flex-start;
     gap: 12px;
 }
 
-/* This container now holds the badges at the top */
-.badge-row {
+// Input Glyphs Styling
+.controls-bar {
     display: flex;
-    gap: 10px;
+    flex-direction: row;
+    gap: 20px;
+    padding: 8px 16px;
+    background-color: rgba(0, 0, 0, 0.85);
+    border-radius: 4px;
+    width: auto;
+
+    .control-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .glyph {
+            height: 24px; // Glyph size
+            width: auto;
+            aspect-ratio: 1/1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+        }
+    }
+}
+
+// Fixed Player Card (Flat Design & Square Avatar)
+.player-identity-card {
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    flex-shrink: 0;
-    /* Ensure badges are at the top of the card */
-    order: 1;
+    gap: 20px;
+    min-width: 520px;
+    border-left: 6px solid #ffffff;
+
+    .avatar-frame {
+        width: 72px;
+        height: 72px;
+        min-width: 72px;
+        min-height: 72px;
+        aspect-ratio: 1/1; // Force 1:1 Square
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .steam-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .identity-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .player-name {
+                font-size: 26px;
+                font-weight: 900;
+                // Removed text-shadow to prevent the "3D" look
+                color: #ffffff; 
+            }
+            
+            .badge-group {
+                display: flex;
+                gap: 10px;
+            }
+        }
+    }
 }
 
-.player-name {
-    font-size: 30px;
+// Badges
+.level-badge {
+    background-color: #ffffff;
+    color: #000;
+    font-size: 15px; 
     font-weight: 900;
-    letter-spacing: 0.5px;
-    color: white;
-    max-width: 100%; /* Expanded to use full card width */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    /* Placed under the badges */
-    order: 2;
-    margin-top: 4px;
-}
-
-.role-badge,
-.clearance-badge {
-    min-height: 56px;
-    padding: 8px 14px;
-    border-radius: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.role-badge {
-    min-width: 120px;
-    background-color: rgba(255, 255, 255, 0.04);
-
-    label {
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: white;
-    }
-
-    &.dclass {
-        background-color: rgba(125, 78, 20, 0.28);
-        border-color: rgba(255, 177, 71, 0.42);
-
-        label {
-            color: #ffb95f;
-        }
-    }
-
-    &.guard {
-        background-color: rgba(28, 72, 124, 0.30);
-        border-color: rgba(95, 160, 235, 0.40);
-
-        label {
-            color: #8fc8ff;
-        }
-    }
-
-    &.researcher {
-        background-color: rgba(28, 92, 64, 0.30);
-        border-color: rgba(108, 214, 164, 0.40);
-
-        label {
-            color: #98e5bb;
-        }
-    }
-
-    &.unassigned {
-        label {
-            color: #d7dee8;
-        }
-    }
-}
-
-.clearance-badge {
-    min-width: 138px;
-    background-color: rgba(255, 255, 255, 0.05);
-    align-items: flex-start;
-
-    .badge-title {
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: #9eabb8;
-        margin-bottom: 3px;
-    }
-
-    .badge-value {
-        font-size: 18px;
-        font-weight: 900;
-        letter-spacing: 0.5px;
-        color: white;
-    }
-}
-
-.progress-card {
-    width: 270px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-}
-
-.eyebrow {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 3px;
+    padding: 4px 14px;
+    border-radius: 2px;
     text-transform: uppercase;
-    color: #9eabb8;
-}
-
-.level-value {
-    font-size: 30px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    color: white;
-}
-
-.progress-track,
-.bar-track {
-    width: 100%;
-    overflow: hidden;
-    border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.10);
-}
-
-.progress-track {
-    height: 7px;
-}
-
-.progress-fill {
-    height: 100%;
-    border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.92);
-}
-
-.health-card {
-    width: 300px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.health-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-
-.health-value {
-    font-size: 22px;
-    font-weight: 900;
-    color: white;
-}
-
-.health-track {
-    height: 12px;
-}
-
-.health-fill {
-    height: 100%;
-    border-radius: 999px;
-    background-color: #e24d4d;
-}
-
-.access-denied-popup {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 320px;
-    padding: 16px 22px;
-    text-align: center;
-    border-color: rgba(255, 108, 108, 0.35);
-    background-color: rgba(42, 12, 17, 0.94);
-}
-
-.denied-title {
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: #ff7373;
-    margin-bottom: 4px;
-}
-
-.denied-sub {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #dfb8b8;
-}
-
-.death-overlay {
-    min-width: 320px;
-    padding: 20px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    background-color: rgba(7, 14, 22, 0.88);
-    border: 1px solid rgba(130, 155, 185, 0.18);
-    border-radius: 18px;
-    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.03);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.death-title {
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: #ff8a8a;
-}
-
-.death-sub {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #d7dee8;
-    text-transform: uppercase;
-}
-
-
-.death-screen {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: grayscale(1) brightness(0.35);
-    background-color: rgba(0, 0, 0, 0.35);
-    pointer-events: all;
-}
-
-
-
-.respawn-button {
-    margin-top: 4px;
-    padding: 9px 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background-color: rgba(255, 255, 255, 0.06);
-    color: white;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-
-
-.xp-popup {
-    position: absolute;
-    top: 110px;
-    right: 18px;
-    min-width: 260px;
-    max-width: 420px;
-    padding: 14px 18px;
-    border-radius: 16px;
-    background-color: rgba(22, 80, 48, 0.92);
-    border: 1px solid rgba(108, 214, 164, 0.45);
-    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.04);
-
-    label {
-        font-size: 14px;
-        font-weight: 900;
-        letter-spacing: 1px;
-        color: #d7ffe9;
-        text-transform: uppercase;
-    }
-}
-
-
-.ammo {
-    position: absolute;
-    right: 24px;
-    bottom: 18px;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    padding: 12px 16px;
-    background-color: rgba(7, 14, 22, 0.88);
-    border: 1px solid rgba(130, 155, 185, 0.18);
-    border-radius: 18px;
-    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.03);
-
-    .current {
-        font-size: 36px;
-        font-weight: 900;
-        color: white;
-    }
-
-    .slash {
-        font-size: 22px;
+    
+    .xp-pct {
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.65);
-    }
-
-    .max {
-        font-size: 22px;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.85);
+        opacity: 0.6;
+        font-size: 13px;
+        margin-left: 4px;
     }
 }
 
-
-
-.crosshair-dot {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 4px;
-    height: 4px;
-    background-color: white;
-    opacity: 0.5;
-    border-radius: 50%;
-    /* Use transform to ensure it is perfectly centered on its own axis */
-    transform: translate(-50%, -50%);
-    pointer-events: none;
+.clearance-badge {
+    background-color: #ffc107;
+    color: #000;
+    font-size: 15px;
+    font-weight: 900;
+    padding: 4px 14px;
+    border-radius: 2px;
+    text-transform: uppercase;
 }
 
-
-.hitmarker {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 24px;
-    height: 24px;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    pointer-events: none;
-
-    &.visible {
-        opacity: 1;
-    }
-
-    .mark {
-        position: absolute;
-        background-color: white;
-        width: 2px;
-        height: 8px;
-    }
-    /* Create the X shape using 45 degree rotations */
-    .lt {
-        transform: rotate(45deg);
-        top: 0;
-        left: 0;
-    }
-
-    .rt {
-        transform: rotate(-45deg);
-        top: 0;
-        right: 0;
-    }
-
-    .lb {
-        transform: rotate(-45deg);
-        bottom: 0;
-        left: 0;
-    }
-
-    .rb {
-        transform: rotate(45deg);
-        bottom: 0;
-        right: 0;
-    }
-}
-
-
-.chat-box {
-    position: absolute;
-    left: 18px;
-    bottom: 110px;
-    width: 420px;
-    max-width: 40%;
-    padding: 12px;
-    border-radius: 16px;
-    background-color: rgba(7, 14, 22, 0.82);
-    border: 1px solid rgba(130, 155, 185, 0.18);
-    box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.03);
-    pointer-events: none;
-
-    &.open {
-        pointer-events: all;
-    }
-}
-
-.chat-log {
+// Role & Health
+.vitals-row {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 180px;
-    overflow: hidden;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+
+    .role-container {
+        min-width: 140px;
+    }
+
+    .health-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+        flex-grow: 1;
+
+        .health-bar-bg {
+            flex-grow: 1;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            background-color: #ffffff;
+        }
+
+        .health-text {
+            font-weight: 900;
+            font-size: 26px;
+            min-width: 45px;
+            text-align: right;
+        }
+    }
 }
 
-.chat-line {
+.role-tag {
     font-size: 15px;
-    color: white;
-    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.55);
+    font-weight: 900;
+    text-transform: uppercase;
+    &.dclass { color: #ffb147; }
+    &.guard { color: #5fa0eb; }
+    &.researcher { color: #6cd6a4; }
 }
 
-.chat-input {
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    color: white;
-    font-size: 15px;
-}
 
-.voice-indicator {
+// Bottom Right Ammo Display
+.ammo-card {
     position: absolute;
-    left: 18px;
-    bottom: 92px;
-    padding: 10px 14px;
-    border-radius: 14px;
-    background-color: rgba(28, 92, 64, 0.90);
-    border: 1px solid rgba(108, 214, 164, 0.45);
+    right: 30px;
+    bottom: 30px;
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 15px 25px;
+    border-right: 6px solid #ffffff; // Matches the player card style
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    label {
-        font-size: 12px;
-        font-weight: 900;
-        letter-spacing: 1px;
-        color: #d7ffe9;
-        text-transform: uppercase;
+    .ammo-numbers {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+
+        .current {
+            font-size: 38px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .slash {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.4);
+            margin: 0 4px;
+        }
+
+        .max {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+        }
     }
 }
