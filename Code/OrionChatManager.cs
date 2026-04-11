@@ -26,7 +26,7 @@ public sealed class OrionChatManager : Component
 			if ( !player.IsValid() )
 				continue;
 
-			if ( player.Network.OwnerConnection == caller )
+			if( player.Network.Owner == caller )
 			{
 				rolePrefix = $"[{player.CurrentRole}] ";
 				break;
