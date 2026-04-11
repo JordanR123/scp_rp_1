@@ -15,8 +15,6 @@ public class PlayerData
 
 
 
-
-
 public partial class OrionPlayerController : Component, Component.IDamageable
 {
 	[Sync( Flags = SyncFlags.FromHost )]
@@ -1675,10 +1673,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		Log.Info( $"[INTERACT] Hit: {tr.GameObject.Name}" );
 
-		// Existing door interaction
 		if ( tr.GameObject.Components.Get<OrionDoor>( FindMode.EverythingInSelfAndAncestors ) is { } door )
 		{
-			door.OnUse( GameObject );
+			door.OnUse();
 		}
 	}
 

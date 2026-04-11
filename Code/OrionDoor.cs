@@ -1,4 +1,5 @@
 using Sandbox;
+using System.Linq;
 
 public sealed class OrionDoor : Component
 {
@@ -6,54 +7,60 @@ public sealed class OrionDoor : Component
 	[Property] public float OpenAngle { get; set; } = 90f;
 	[Property] public float MoveSpeed { get; set; } = 3f;
 
-	private Angles _closedAngles;
+	private Rotation _closedRotation;
 
 	[Sync( Flags = SyncFlags.FromHost )]
 	public bool IsOpen { get; set; }
 
 	protected override void OnStart()
 	{
-		_closedAngles = Transform.Local.Rotation.Angles();
+		_closedRotation = LocalRotation;
 	}
 
-	public void OnUse( GameObject user )
+	public void OnUse()
 	{
-		// Never trust local callers for world state.
-		RequestUseOnHost( user );
+		RequestUseOnHost();
 	}
 
 	[Rpc.Host]
-	private void RequestUseOnHost( GameObject user )
+	private void RequestUseOnHost()
 	{
-		if ( !user.IsValid() )
-			return;
+		var player = Scene.GetAllComponents<OrionPlayerController>()
+			.FirstOrDefault( p =>
+				p.IsValid() &&
+				p.GameObject.IsValid() &&
+				p.GameObject.Network.Owner == Rpc.Caller );
 
-		var player = user.Components.Get<OrionPlayerController>( FindMode.EverythingInSelfAndAncestors );
 		if ( !player.IsValid() )
+		{
+			Log.Warning( $"[DOOR] No valid player found for RPC caller on {GameObject.Name}" );
 			return;
+		}
+
+		Log.Info(
+			$"[DOOR] Caller player={player.GameObject.Name} clearance={player.ClearanceLevel} required={RequiredClearance}"
+		);
 
 		if ( player.ClearanceLevel < RequiredClearance )
 		{
-			var localHud = user.Components.GetInChildren<OrionHUDState>();
-			if ( localHud.IsValid() )
-			{
-				localHud.ShowAccessDenied( RequiredClearance );
-			}
-
+			Log.Info( $"[DOOR] ACCESS DENIED for {player.GameObject.Name}" );
 			return;
 		}
 
 		IsOpen = !IsOpen;
+
+		// Helps snap out of stale interpolation when state changes.
+		Network.ClearInterpolation();
+
+		Log.Info( $"[DOOR] {(IsOpen ? "OPENED" : "CLOSED")} by {player.GameObject.Name}" );
 	}
 
 	protected override void OnUpdate()
 	{
-		var targetAngle = IsOpen ? _closedAngles.yaw + OpenAngle : _closedAngles.yaw;
-		var current = Transform.Local.Rotation.Angles();
-		var newYaw = MathX.LerpTo( current.yaw, targetAngle, Time.Delta * MoveSpeed );
+		var targetRotation = IsOpen
+			? _closedRotation * Rotation.FromYaw( OpenAngle )
+			: _closedRotation;
 
-		Transform.Local = Transform.Local.WithRotation(
-			Rotation.From( current.pitch, newYaw, current.roll )
-		);
+		LocalRotation = Rotation.Slerp( LocalRotation, targetRotation, Time.Delta * MoveSpeed );
 	}
 }
