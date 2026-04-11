@@ -459,6 +459,26 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		return true;
 	}
 
+	[Rpc.Host]
+	private void RequestGiveDebugXpOnHost( float amount )
+	{
+		if ( !Networking.IsHost )
+			return;
+
+		Experience += amount;
+		CheckLevelUp();
+
+		Log.Info( $"[DEBUG XP] {GameObject.Name} gained {amount} XP (Total: {Experience})" );
+
+		// Use your existing popup system (same as errors 👍)
+		ShowTimedXpPopup( $"+{amount} XP" );
+
+		SaveGame();
+	}
+
+
+
+
 	// End of XP System
 
 	public float TimeSinceDeath { get; set; } = 0f;
@@ -955,6 +975,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			Log.Info( $"[KEY TEST] Raw G pressed | Player={GameObject.Name}" );
 		}
+
+		if ( Input.Keyboard.Pressed( "P" ) )
+		{
+			RequestGiveDebugXpOnHost( 250f ); // tweak amount as needed
+		}
+
+
 
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
@@ -1808,23 +1835,27 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	private void CheckLevelUp()
 	{
 		bool leveledUp = false;
+		string levelUpMessage = "";
 
 		if ( PlayerLevel == 1 && Experience >= 600f )
 		{
 			PlayerLevel = 2;
 			leveledUp = true;
+			levelUpMessage = "LEVEL UP - LEVEL 2";
 			Log.Info( "[PROGRESSION] Level 2 reached!" );
 		}
 		else if ( PlayerLevel == 2 && Experience >= 1200f )
 		{
 			PlayerLevel = 3;
 			leveledUp = true;
+			levelUpMessage = "LEVEL UP - LEVEL 3";
 			Log.Info( "[PROGRESSION] Level 3 reached!" );
 		}
 
 		if ( leveledUp )
 		{
 			Log.Info( $"[LEVEL UP] {GameObject.Name} is now level {PlayerLevel}" );
+			ShowTimedXpPopup( levelUpMessage );
 			SaveGame();
 		}
 	}
