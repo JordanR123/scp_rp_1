@@ -30,6 +30,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public string NetworkPlayerName { get; set; } = "Player";
 
 	[Sync( Flags = SyncFlags.FromHost )]
+	public string PersistentPlayerId { get; set; } = "";
+
+	[Sync( Flags = SyncFlags.FromHost )]
 	public int PlayerLevel { get; set; }
 
 	[Sync( Flags = SyncFlags.FromHost )] 
@@ -153,8 +156,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		get
 		{
-			var ownerId = GameObject.Network.OwnerId;
-			return $"player_stats_{ownerId}.json";
+			var id = string.IsNullOrWhiteSpace( PersistentPlayerId )
+				? "unknown"
+				: PersistentPlayerId;
+
+			return $"player_stats_{id}.json";
 		}
 	}
 
@@ -554,7 +560,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	protected override void OnStart()
 	{
 
-		LoadGame();
 		UpdateClearance();
 		UpdatePlayerVisuals();
 
@@ -1384,6 +1389,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			return;
 
 		weapon.PlayAttackAnimation();
+		weapon.SpawnMuzzleFlash();
 
 		// Only trigger body fire anim when actually using the gun slot.
 		if ( slotIndex == 1 && HasGun && !IsDead )
@@ -2132,6 +2138,15 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public void SaveGame()
 	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( string.IsNullOrWhiteSpace( PersistentPlayerId ) )
+		{
+			Log.Warning( $"[SAVE SYSTEM] Skipped save for {GameObject.Name} because PersistentPlayerId is missing." );
+			return;
+		}
+
 		var data = new PlayerData
 		{
 			Level = PlayerLevel,
@@ -2145,6 +2160,17 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public void LoadGame()
 	{
+		if ( !Networking.IsHost )
+			return;
+
+		if ( string.IsNullOrWhiteSpace( PersistentPlayerId ) )
+		{
+			Log.Warning( $"[SAVE SYSTEM] Skipped load for {GameObject.Name} because PersistentPlayerId is missing." );
+			PlayerLevel = 1;
+			Experience = 0f;
+			return;
+		}
+
 		if ( FileSystem.Data.FileExists( SaveFileName ) )
 		{
 			var data = FileSystem.Data.ReadJson<PlayerData>( SaveFileName );

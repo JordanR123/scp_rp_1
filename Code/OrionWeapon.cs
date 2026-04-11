@@ -12,6 +12,9 @@ public class OrionWeapon : Component
 	[Property, Group( "Animation" )] public string ReloadSpeedFloat { get; set; } = "speed_reload";
 	[Property, Group( "Animation" )] public float ReloadAnimSpeed { get; set; } = 1.0f;
 
+	[Property, Group( "FX" )] public GameObject MuzzleFlashPrefab { get; set; }
+	[Property, Group( "FX" )] public string MuzzleAttachmentName { get; set; } = "muzzle";
+
 	[Property] public Vector3 ViewOffset { get; set; } = new Vector3( 0, 0, 0 );
 
 	[Property] public GameObject WorldModel { get; set; }
@@ -61,6 +64,36 @@ public class OrionWeapon : Component
 			wm.Set( ReloadTrigger, true );
 		}
 	}
+
+
+	public void SpawnMuzzleFlash()
+	{
+		if ( !WorldModel.IsValid() || !MuzzleFlashPrefab.IsValid() )
+			return;
+
+		var renderer = GetWorldModelRenderer();
+		if ( !renderer.IsValid() )
+			return;
+
+		// Try attach to bone/socket
+		var attach = renderer.GetAttachment( MuzzleAttachmentName );
+
+		GameObject fx = MuzzleFlashPrefab.Clone();
+
+		if ( attach != null )
+		{
+			fx.WorldPosition = attach.Value.Position;
+			fx.WorldRotation = attach.Value.Rotation;
+		}
+		else
+		{
+			// fallback (VERY important or you'll think it's broken)
+			fx.WorldPosition = WorldModel.WorldPosition;
+			fx.WorldRotation = WorldModel.WorldRotation;
+		}
+
+	}
+
 
 	public void PlayAttackAnimation()
 	{

@@ -1,5 +1,6 @@
 using Sandbox;
 using Sandbox.Network;
+using System.Linq;
 
 public sealed class OrionNetworkManager : Component, Component.INetworkListener
 {
@@ -8,10 +9,11 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 
 	protected override void OnStart()
 	{
-		// Only create a lobby if we're not already in one
+		// Dedicated server should not create a lobby here.
 		if ( Networking.IsActive )
 			return;
 
+		// Only do this for listen-host / local testing if you still need it.
 		Networking.CreateLobby( new LobbyConfig
 		{
 			MaxPlayers = 16,
@@ -46,6 +48,22 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 		player.Transform.World = spawnTransform;
 		player.NetworkSpawn( connection );
 
-		Log.Info( $"[NET] Spawned player {connection.Id} in Spawn Room at {spawnTransform.Position}" );
+		var controller = player.Components.Get<OrionPlayerController>( FindMode.EverythingInSelfAndChildren );
+		if ( !controller.IsValid() )
+		{
+			Log.Error( $"[NET] Spawned player object for {connection.DisplayName}, but OrionPlayerController was missing." );
+			return;
+		}
+
+		// Use SteamId for persistence across reconnects.
+		controller.PersistentPlayerId = connection.SteamId.ToString();
+		controller.NetworkPlayerName = string.IsNullOrWhiteSpace( connection.DisplayName )
+			? $"Player {connection.Id}"
+			: connection.DisplayName;
+
+		controller.LoadGame();
+
+		Log.Info( $"[NET] Spawned player {connection.DisplayName} | SteamId={connection.SteamId} | SaveKey={controller.PersistentPlayerId}" );
+		Log.Info( $"[NET] Spawned player in Spawn Room at {spawnTransform.Position}" );
 	}
 }
