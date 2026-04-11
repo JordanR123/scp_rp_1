@@ -51,13 +51,18 @@ public class OrionGameManager : Component
 		return spawnObject.Transform.World;
 	}
 
+
 	public void SpawnPlayer( OrionPlayerController player, PlayerRole role )
 	{
+		Log.Info( $"[SPAWN DEBUG] SpawnPlayer ENTER | Player={(player.IsValid() ? player.GameObject.Name : "INVALID")} | Role={role}" );
+
 		if ( !player.IsValid() )
 		{
-			Log.Error( "SpawnPlayer: player was invalid." );
+			Log.Error( "[SPAWN DEBUG] SpawnPlayer: player was invalid." );
 			return;
 		}
+
+		Log.Info( $"[SPAWN DEBUG] Before role assign | CurrentRole={player.CurrentRole} | HasChosenRole={player.HasChosenRole}" );
 
 		player.CurrentRole = role;
 		player.HasChosenRole = true;
@@ -65,14 +70,18 @@ public class OrionGameManager : Component
 		player.UpdatePlayerVisuals();
 		player.SetupLoadoutForRole();
 
+		Log.Info( $"[SPAWN DEBUG] After setup | CurrentRole={player.CurrentRole} | HasChosenRole={player.HasChosenRole} | HasGun={player.HasGun}" );
+
 		Transform target = GetSpawnTransformForRole( role );
+
+		Log.Info( $"[SPAWN DEBUG] Target spawn | Pos={target.Position} | Rot={target.Rotation}" );
 
 		player.Transform.World = target;
 		player.Network.ClearInterpolation();
 
 		player.ApplySpawnOnOwner( target.Position, target.Rotation );
 
-		Log.Info( $"[SPAWN] {player.GameObject.Name} assigned to {role} and moved to {target.Position}" );
+		Log.Info( $"[SPAWN DEBUG] Spawn complete | Player={player.GameObject.Name} | Role={role} | Pos={target.Position}" );
 	}
 
 

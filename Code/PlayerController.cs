@@ -450,6 +450,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	protected override void OnStart()
 	{
+
 		LoadGame();
 		UpdateClearance();
 		UpdatePlayerVisuals();
@@ -502,28 +503,41 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public void ChooseRole( PlayerRole role )
 	{
-		if ( !GameObject.Network.IsOwner )
-			return;
+		Log.Info( $"[ROLE PICK DEBUG] ChooseRole called locally | Player={GameObject.Name} | Role={role} | Owner={GameObject.Network.IsOwner}" );
 
+		if ( !GameObject.Network.IsOwner )
+		{
+			Log.Warning( $"[ROLE PICK DEBUG] BLOCKED: {GameObject.Name} is not owner" );
+			return;
+		}
+
+		Log.Info( $"[ROLE PICK DEBUG] Sending RequestChooseRoleOnHost({role})" );
 		RequestChooseRoleOnHost( role );
 	}
 
 	[Rpc.Host]
 	private void RequestChooseRoleOnHost( PlayerRole role )
 	{
+		Log.Info( $"[ROLE HOST DEBUG] RequestChooseRoleOnHost ENTER | Player={GameObject.Name} | Role={role}" );
+
 		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
 		if ( !manager.IsValid() )
 		{
-			Log.Warning( "[ROLE HOST] Game manager not found." );
+			Log.Warning( "[ROLE HOST DEBUG] BLOCKED: Game manager not found." );
 			return;
 		}
 
+		Log.Info( $"[ROLE HOST DEBUG] Game manager found: {manager.GameObject.Name}" );
+		Log.Info( $"[ROLE HOST DEBUG] Calling SpawnPlayer for {GameObject.Name} with role {role}" );
+
 		manager.SpawnPlayer( this, role );
+
+		Log.Info( $"[ROLE HOST DEBUG] SpawnPlayer finished for {GameObject.Name}" );
 
 		HideRoleSelect();
 		RefreshLocalOwnershipState();
 
-		Log.Info( $"[ROLE HOST] {GameObject.Name} chose {role}" );
+		Log.Info( $"[ROLE HOST DEBUG] Completed role change for {GameObject.Name} -> {role}" );
 	}
 
 
@@ -628,32 +642,80 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private void ShowRoleSelect()
 	{
+		Log.Info( $"[ROLE UI DEBUG] ShowRoleSelect ENTER | Player={GameObject.Name} | Owner={GameObject.Network.IsOwner} | ExistingUi={_roleUiInstance.IsValid()}" );
+
 		if ( !GameObject.Network.IsOwner )
+		{
+			Log.Warning( $"[ROLE UI DEBUG] BLOCKED: {GameObject.Name} is not the owner" );
 			return;
+		}
 
 		if ( _roleUiInstance.IsValid() )
+		{
+			Log.Warning( $"[ROLE UI DEBUG] BLOCKED: role UI already exists for {GameObject.Name}" );
 			return;
+		}
 
 		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
 
-		if ( !manager.IsValid() || !manager.RoleSelectPrefab.IsValid() )
+		if ( !manager.IsValid() )
 		{
-			Log.Warning( "[ROLE UI] Missing RoleSelectPrefab!" );
+			Log.Warning( "[ROLE UI DEBUG] BLOCKED: OrionGameManager not found" );
+			return;
+		}
+
+		Log.Info( $"[ROLE UI DEBUG] Manager found: {manager.GameObject.Name}" );
+		Log.Info( $"[ROLE UI DEBUG] RoleSelectPrefab valid = {manager.RoleSelectPrefab.IsValid()}" );
+
+		if ( !manager.RoleSelectPrefab.IsValid() )
+		{
+			Log.Warning( "[ROLE UI DEBUG] BLOCKED: RoleSelectPrefab is missing or invalid" );
 			return;
 		}
 
 		_roleUiInstance = manager.RoleSelectPrefab.Clone();
-		// DO NOT NetworkSpawn UI. This must stay local-only.
 
-		Log.Info( "[ROLE UI] Local role selection shown." );
+		Log.Info( $"[ROLE UI DEBUG] UI cloned successfully | Instance={_roleUiInstance?.Name}" );
+	}
+
+	private void OpenRoleMenuAnytime()
+	{
+
+		if ( !GameObject.Network.IsOwner || IsProxy )
+		{
+			return;
+		}
+
+		var hud = ResolveHudState();
+
+		if ( !hud.IsValid() )
+		{
+		}
+		else
+		{
+		}
+
+		if ( hud.IsValid() && hud.ShowChat )
+		{
+			hud.CloseChat();
+		}
+
+		ShowRoleSelect();
 	}
 
 	public void HideRoleSelect()
 	{
+		Log.Info( $"[ROLE UI DEBUG] HideRoleSelect called | HasUi={_roleUiInstance.IsValid()}" );
+
 		if ( _roleUiInstance.IsValid() )
 		{
+			Log.Info( $"[ROLE UI DEBUG] Destroying role UI instance {_roleUiInstance.Name}" );
 			_roleUiInstance.Destroy();
 			_roleUiInstance = null;
+		}
+		else
+		{
+			Log.Warning( "[ROLE UI DEBUG] HideRoleSelect called but no UI instance exists" );
 		}
 	}
 
@@ -814,6 +876,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	protected override void OnUpdate()
 	{
 
+
+		if ( _debugBuildMarkerTimer <= 0f )
+		{
+			_debugBuildMarkerTimer = 3f;
+		}
+
+
 		// Host-authoritative timers/simulation.
 		// This MUST run even when the host does not own this pawn.
 		if ( Networking.IsHost )
@@ -827,6 +896,17 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			}
 		}
 		UpdateThirdPersonBodyPose();
+
+		if ( Input.Pressed( "rolemenu" ) )
+		{
+			Log.Info( $"[ROLE MENU] TAB pressed - opening menu | Player={GameObject.Name}" );
+			OpenRoleMenuAnytime();
+		}
+
+		if ( Input.Keyboard.Pressed( "G" ) )
+		{
+			Log.Info( $"[KEY TEST] Raw G pressed | Player={GameObject.Name}" );
+		}
 
 		if ( IsProxy || !GameObject.Network.IsOwner )
 			return;
@@ -859,6 +939,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			Input.Down( "duck" ) ||
 			Input.Keyboard.Down( "CTRL" ) ||
 			Input.Keyboard.Down( "C" );
+
 
 		if ( wantsCrouch != IsCrouching )
 		{
@@ -936,6 +1017,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 	private TimeUntil _respawnFireLock;
+	private TimeUntil _debugBuildMarkerTimer;
 
 	public void ResetLookAfterRespawn()
 	{
