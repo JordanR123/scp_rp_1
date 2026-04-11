@@ -982,8 +982,21 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( Input.Keyboard.Pressed( "G" ) )
 		{
+			if ( !HasGun || CurrentSlot != 1 )
+			{
+				ShowTimedXpPopup( "NO GUN TO DROP", XpPopupType.Error );
+				return;
+			}
+
+			if ( !HasGun || CurrentSlot != 1 || IsReloading )
+			{
+				ShowTimedXpPopup( "CAN'T DROP RIGHT NOW", XpPopupType.Error );
+				return;
+			}
+
 			RequestDropGunOnHost();
 		}
+
 
 		if ( Input.Keyboard.Pressed( "P" ) )
 		{
@@ -1998,6 +2011,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		UpdateThirdPersonBodyPose();
 
 		Log.Info( $"[DROP] {GameObject.Name} dropped {gun.WeaponName}" );
+		ShowTimedXpPopup( "YOU DROPPED THE GUN", XpPopupType.Success );
+
 	}
 
 	public void SaveGame()
