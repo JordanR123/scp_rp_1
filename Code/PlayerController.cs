@@ -703,6 +703,32 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		ShowRoleSelect();
 	}
 
+
+	private void ToggleRoleMenu()
+	{
+		if ( !GameObject.Network.IsOwner || IsProxy )
+			return;
+
+		if ( _roleUiInstance.IsValid() )
+		{
+			Log.Info( $"[ROLE MENU] TAB pressed - closing role menu | Player={GameObject.Name}" );
+			HideRoleSelect();
+			return;
+		}
+
+		var hud = ResolveHudState();
+		if ( hud.IsValid() && hud.ShowChat )
+		{
+			Log.Info( $"[ROLE MENU] TAB pressed - closing chat before opening role menu | Player={GameObject.Name}" );
+			hud.CloseChat();
+		}
+
+		Log.Info( $"[ROLE MENU] TAB pressed - opening role menu | Player={GameObject.Name}" );
+		ShowRoleSelect();
+	}
+
+
+
 	public void HideRoleSelect()
 	{
 		Log.Info( $"[ROLE UI DEBUG] HideRoleSelect called | HasUi={_roleUiInstance.IsValid()}" );
@@ -899,8 +925,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( Input.Pressed( "rolemenu" ) )
 		{
-			Log.Info( $"[ROLE MENU] TAB pressed - opening menu | Player={GameObject.Name}" );
-			OpenRoleMenuAnytime();
+			ToggleRoleMenu();
 		}
 
 		if ( Input.Keyboard.Pressed( "G" ) )
