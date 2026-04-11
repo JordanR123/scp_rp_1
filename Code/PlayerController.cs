@@ -19,8 +19,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 {
 	[Sync( Flags = SyncFlags.FromHost )]
 	[Property] public PlayerRole CurrentRole { get; set; } = PlayerRole.DClass;
-	[Property] public int PlayerLevel { get; set; } = 1;
-	[Property] public float Experience { get; set; } = 0f;
+	[Sync( Flags = SyncFlags.FromHost )]
+	public int PlayerLevel { get; set; }
+	[Sync( Flags = SyncFlags.FromHost )] 
+	public float Experience { get; set; }
 	[Property] public float MaxHealth { get; set; } = 100f;
 
 
@@ -353,10 +355,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 
 
-
 	// XP System
 	private const float ResearcherXpGiftAmount = 100f;
-	private static readonly TimeSpan ResearcherXpCooldown = TimeSpan.FromMinutes( 5 );
+	private static readonly TimeSpan ResearcherXpCooldown = TimeSpan.FromMinutes( 0.1 );
 	private static readonly TimeSpan XpPopupDuration = TimeSpan.FromSeconds( 3 );
 
 	private DateTime _nextResearcherGiveXpUtc = DateTime.MinValue;
@@ -364,7 +365,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	private DateTime _xpPopupUntilUtc = DateTime.MinValue;
 
 	private bool CanReceiveResearcherXp =>
-	CurrentRole == PlayerRole.Guard || CurrentRole == PlayerRole.DClass;
+		CurrentRole == PlayerRole.Guard || CurrentRole == PlayerRole.DClass;
 
 	private bool IsResearcherGiveReady =>
 		DateTime.UtcNow >= _nextResearcherGiveXpUtc;
@@ -382,11 +383,17 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_nextResearcherReceiveXpUtc = DateTime.UtcNow + ResearcherXpCooldown;
 	}
 
-	private void ShowTimedXpPopup( string message )
+	private void ShowTimedXpPopupLocal( string message )
 	{
 		XpPopupMessage = message;
 		ShowXpPopup = true;
 		_xpPopupUntilUtc = DateTime.UtcNow + XpPopupDuration;
+	}
+
+	[Rpc.Owner]
+	private void ShowTimedXpPopup( string message )
+	{
+		ShowTimedXpPopupLocal( message );
 	}
 
 	private void UpdateXpPopup()
@@ -400,42 +407,60 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public bool TryGiveResearcherXpTo( OrionPlayerController target )
 	{
-		if ( target == null || !target.IsValid() )
+		if ( CurrentRole != PlayerRole.Researcher )
+		{
+			ShowTimedXpPopup( "YOU'RE NOT A RESEARCHER" );
 			return false;
+		}
+
+		if ( target == null || !target.IsValid() )
+		{
+			ShowTimedXpPopup( "NEED TARGET" );
+			return false;
+		}
 
 		if ( target == this )
+		{
+			ShowTimedXpPopup( "NEED TARGET" );
 			return false;
-
-		if ( CurrentRole != PlayerRole.Researcher )
-			return false;
-
-		if ( !target.CanReceiveResearcherXp )
-			return false;
+		}
 
 		if ( !IsResearcherGiveReady )
 		{
-			ShowTimedXpPopup( "XP GIFT ON COOLDOWN" );
+			var waitSeconds = (int)Math.Ceiling( (_nextResearcherGiveXpUtc - DateTime.UtcNow).TotalSeconds );
+			waitSeconds = Math.Max( waitSeconds, 1 );
+
+			ShowTimedXpPopup( $"WAIT {waitSeconds} SECONDS" );
+			return false;
+		}
+
+		if ( !target.CanReceiveResearcherXp )
+		{
+			ShowTimedXpPopup( "INVALID TARGET" );
 			return false;
 		}
 
 		if ( !target.IsResearcherReceiveReady )
 		{
-			ShowTimedXpPopup( $"{target.CurrentRole.ToString().ToUpper()} ALREADY RECEIVED XP" );
+			ShowTimedXpPopup( "TARGET ALREADY GOT XP" );
 			return false;
 		}
 
 		target.Experience += ResearcherXpGiftAmount;
+		target.CheckLevelUp();
+
+		Log.Info(
+			$"[XP TRANSFER] {GameObject.Name} (Researcher) -> {target.GameObject.Name} | Amount={ResearcherXpGiftAmount}"
+		);
 
 		StartResearcherGiveCooldown();
 		target.StartResearcherReceiveCooldown();
 
-		ShowTimedXpPopup( $"YOU GAVE {target.CurrentRole.ToString().ToUpper()} 100 XP" );
-		target.ShowTimedXpPopup( $"RESEARCHER GAVE YOU 100 XP" );
+		ShowTimedXpPopup( $"GAVE {target.GameObject.Name.ToUpper()} 100 XP" );
+		target.ShowTimedXpPopup( "YOU RECEIVED 100 XP" );
 
 		target.SaveGame();
 		SaveGame();
-
-		Log.Info( $"[XP GIFT] {GameObject.Name} gave {ResearcherXpGiftAmount} XP to {target.GameObject.Name}" );
 		return true;
 	}
 
@@ -1015,6 +1040,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		NetworkEyePosition = GetEyeWorldPosition();
 
 		Experience += Time.Delta;
+		CheckLevelUp();
 
 		if ( PlayerLevel == 1 && Experience >= 600f )
 		{
@@ -1775,17 +1801,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private void TryGiveXpFromLook()
 	{
-		Log.Info( "[GIVE XP] B pressed" );
-
-		if ( CurrentRole != PlayerRole.Researcher )
-		{
-			Log.Info( $"[GIVE XP] Not a researcher (Role: {CurrentRole})" );
-			return;
-		}
-
 		if ( !PlayerCamera.IsValid() )
 		{
-			Log.Warning( "[GIVE XP] PlayerCamera not assigned!" );
+			ShowTimedXpPopupLocal( "PLAYER CAMERA NOT SET" );
 			return;
 		}
 
@@ -1795,42 +1813,46 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		// ❌ Case 1: hit nothing
-		if ( !tr.Hit )
+		if ( !tr.Hit || !tr.GameObject.IsValid() )
 		{
-			Log.Info( "[GIVE XP] Hit nothing" );
+			ShowTimedXpPopupLocal( "NO PLAYER TARGETED" );
 			return;
 		}
-
-		// Always log what we hit
-		Log.Info( $"[GIVE XP] Hit object: {tr.GameObject.Name}" );
 
 		var targetPlayer = tr.GameObject.Components.Get<OrionPlayerController>( FindMode.EverythingInSelfAndAncestors );
 
-		// ❌ Case 2: hit something but not a player
 		if ( !targetPlayer.IsValid() )
 		{
-			Log.Info( "[GIVE XP] Hit object is NOT a player" );
+			ShowTimedXpPopupLocal( "NO PLAYER TARGETED" );
 			return;
 		}
 
-		// ✅ Case 3: hit a player
-		Log.Info( $"[GIVE XP] Hit PLAYER: {targetPlayer.GameObject.Name} (Role: {targetPlayer.CurrentRole})" );
-
-		// Optional: check if valid target role
-		if ( !targetPlayer.CanReceiveResearcherXp )
-		{
-			Log.Info( "[GIVE XP] Player cannot receive XP (wrong role)" );
-			return;
-		}
-
-		// Attempt XP transfer
-		var success = TryGiveResearcherXpTo( targetPlayer );
-
-		Log.Info( success
-			? "[GIVE XP] XP transfer SUCCESS"
-			: "[GIVE XP] XP transfer FAILED (cooldown or rules)" );
+		RequestGiveXpOnHost( targetPlayer.GameObject );
 	}
+
+	private void CheckLevelUp()
+	{
+		bool leveledUp = false;
+
+		if ( PlayerLevel == 1 && Experience >= 600f )
+		{
+			PlayerLevel = 2;
+			leveledUp = true;
+		}
+		else if ( PlayerLevel == 2 && Experience >= 1200f )
+		{
+			PlayerLevel = 3;
+			leveledUp = true;
+		}
+
+		if ( leveledUp )
+		{
+			Log.Info( $"[LEVEL UP] {GameObject.Name} is now level {PlayerLevel}" );
+			SaveGame();
+		}
+	}
+
+
 
 	private void HandleInteraction()
 	{
@@ -1865,6 +1887,26 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	}
 
 	[Rpc.Host]
+	private void RequestGiveXpOnHost( GameObject targetObject )
+	{
+		if ( !targetObject.IsValid() )
+		{
+			ShowTimedXpPopup( "NO VALID PLAYER TARGETED" );
+			return;
+		}
+
+		var targetPlayer = targetObject.Components.Get<OrionPlayerController>( FindMode.EverythingInSelfAndAncestors );
+
+		if ( !targetPlayer.IsValid() )
+		{
+			ShowTimedXpPopup( "NO VALID PLAYER TARGETED" );
+			return;
+		}
+
+		TryGiveResearcherXpTo( targetPlayer );
+	}
+
+	[Rpc.Host]
 	private void RequestPickupWeaponOnHost( GameObject pickupObject )
 	{
 		if ( !pickupObject.IsValid() )
@@ -1880,7 +1922,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		pickup.TryPickup( this );
 	}
-
 
 	public void UpdateClearance()
 	{

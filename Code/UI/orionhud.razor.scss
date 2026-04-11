@@ -444,3 +444,23 @@
     color: white;
     font-size: 16px;
 }
+
+
+.xp-notification-popup {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    border-bottom: 3px solid #ffcc00; // Gold for success/warning
+    padding: 10px 25px;
+    border-radius: 4px;
+    z-index: 200; // High z-index to stay on top
+
+    .popup-text {
+        font-size: 18px;
+        font-weight: 800;
+        color: white;
+        text-transform: uppercase;
+    }
+}
