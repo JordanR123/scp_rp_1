@@ -1660,12 +1660,25 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		EquipWeapon( slotIndex );
 	}
 
+	private void AttachWorldWeapon( OrionWeapon weapon )
+	{
+		if ( !weapon.IsValid() || !RightHandAnchor.IsValid() )
+			return;
+
+		// Only reparent if needed
+		if ( weapon.GameObject.Parent != RightHandAnchor )
+		{
+			weapon.GameObject.Parent = RightHandAnchor;
+		}
+
+		// Apply the actual third-person correction
+		weapon.LocalPosition = weapon.WorldOffset;
+		weapon.LocalRotation = Rotation.From( weapon.WorldAngles );
+	}
+
 	private void UpdateWeaponVisibility()
 	{
-
 		bool isLocalFirstPerson = !IsProxy && PlayerCamera.IsValid() && PlayerCamera.Enabled;
-
-		Log.Info( $"[VISIBILITY DEBUG] Updating visibility. Slot={CurrentSlot}, FirstPerson={isLocalFirstPerson}, IsDead={IsDead}" );
 
 		for ( int i = 0; i < Inventory.Count; i++ )
 		{
@@ -1677,12 +1690,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			weapon.SetFirstPersonVisible( false );
 			weapon.SetThirdPersonVisible( false );
 
-			if ( RightHandAnchor.IsValid() )
-			{
-				weapon.GameObject.Parent = RightHandAnchor;
-				weapon.LocalPosition = Vector3.Zero;
-				weapon.LocalRotation = Rotation.Identity;
-			}
+			AttachWorldWeapon( weapon );
 
 			if ( isActive )
 			{

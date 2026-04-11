@@ -2232,7 +2232,7 @@
           "Flags": 0,
           "Name": "wooden_door_01d",
           "Position": "-19.86357,47.00991,0",
-          "Rotation": "0,0,0,1",
+          "Rotation": "0,-0,-0.7071068,0.7071068",
           "Scale": "1,1,1",
           "Tags": "",
           "Enabled": true,
@@ -2635,7 +2635,7 @@
       },
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "9095c93d-dc8d-4605-a5a2-c441d6b5cbb7"
+          "$blob": "a7bfa61f-f11f-4dc0-9fd0-89bdf6923d72"
         }
       }
     }
