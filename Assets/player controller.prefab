@@ -209,7 +209,6 @@
           "go": "5820999e-bf8f-4e81-bc0e-1f8375af395f",
           "component_type": "SkinnedModelRenderer"
         },
-        "ChatManager": null,
         "ClearanceLevel": 0,
         "CrouchingEyeHeight": 42,
         "CurrentRole": "DClass",
@@ -218,7 +217,6 @@
           "_type": "gameobject",
           "prefab": "weapons/droppedweaponpickupprefab.prefab"
         },
-        "Experience": 0,
         "EyeAnchor": {
           "_type": "gameobject",
           "go": "b58e9769-5f81-4f17-9d4f-06baf89bb999"
@@ -226,7 +224,6 @@
         "EyeLerpSpeed": 12,
         "GuardClothing": "clothing/guard_army_shirt.clothing",
         "HitSound": "sounds/hitanddamagedsound.sound",
-        "HudState": null,
         "Inventory": [
           {
             "_type": "component",
@@ -254,7 +251,6 @@
           "go": "b58e9769-5f81-4f17-9d4f-06baf89bb999",
           "component_type": "CameraComponent"
         },
-        "PlayerLevel": 1,
         "RagdollPrefab": {
           "_type": "gameobject",
           "prefab": "defaultragdoll.prefab"
@@ -759,7 +755,26 @@
                 "__Prefab": "weapons/w_m4a1.prefab",
                 "__PrefabInstancePatch": {
                   "AddedObjects": [],
-                  "RemovedObjects": [],
+                  "RemovedObjects": [
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "fb6246f9-6f32-43f8-b67d-1ef028afc4c4"
+                      }
+                    },
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "bf482dd4-3349-4f4d-9f9f-3a065c45522f"
+                      }
+                    },
+                    {
+                      "Id": {
+                        "Type": "Component",
+                        "IdValue": "386e438b-0ac5-47f4-bd8c-be0fa336e57e"
+                      }
+                    }
+                  ],
                   "PropertyOverrides": [
                     {
                       "Target": {
@@ -772,10 +787,10 @@
                     {
                       "Target": {
                         "Type": "Component",
-                        "IdValue": "fb6246f9-6f32-43f8-b67d-1ef028afc4c4"
+                        "IdValue": "7ab81615-cd38-4617-ba4b-b94a851ae551"
                       },
-                      "Property": "RenderType",
-                      "Value": "Off"
+                      "Property": "__enabled",
+                      "Value": false
                     }
                   ],
                   "MovedObjects": []

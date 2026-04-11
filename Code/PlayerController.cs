@@ -896,7 +896,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		else if ( CurrentSlot == 1 && HasGun )
 		{
 			// Use Pistol for a handgun, Rifle if it's a long gun.
-			BodyAnimator.HoldType = CitizenAnimationHelper.HoldTypes.Pistol;
+			BodyAnimator.HoldType = CitizenAnimationHelper.HoldTypes.Rifle;
 			BodyAnimator.Handedness = CitizenAnimationHelper.Hand.Right;
 		}
 		else
