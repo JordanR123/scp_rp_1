@@ -16,6 +16,41 @@ public class OrionGameManager : Component
 	}
 
 
+	private Transform GetSpawnTransformForRole( PlayerRole role )
+	{
+		GameObject spawnObject = role switch
+		{
+			PlayerRole.DClass => DBlockSpawn,
+			PlayerRole.Guard => GuardSpawn,
+			PlayerRole.Researcher => SurfaceSpawn,
+			_ => null
+		};
+
+		Log.Info(
+			$"[SPAWN LOOKUP] Role={role} | " +
+			$"DBlockSpawn={(DBlockSpawn.IsValid() ? DBlockSpawn.Name : "NULL")} | " +
+			$"GuardSpawn={(GuardSpawn.IsValid() ? GuardSpawn.Name : "NULL")} | " +
+			$"SurfaceSpawn={(SurfaceSpawn.IsValid() ? SurfaceSpawn.Name : "NULL")} | " +
+			$"SpawnRoom={(SpawnRoomLocation.IsValid() ? SpawnRoomLocation.Name : "NULL")}"
+		);
+
+		if ( !spawnObject.IsValid() )
+		{
+			Log.Warning( $"[SPAWN LOOKUP] Role spawn invalid for {role}, falling back to SpawnRoomLocation" );
+			spawnObject = SpawnRoomLocation;
+		}
+
+		if ( !spawnObject.IsValid() )
+		{
+			Log.Warning( "[SPAWN LOOKUP] SpawnRoomLocation not assigned. Falling back to GameManager object." );
+			spawnObject = GameObject;
+		}
+
+		Log.Info( $"[SPAWN LOOKUP] Role={role} -> Using {spawnObject.Name} at {spawnObject.WorldPosition}" );
+
+		return spawnObject.Transform.World;
+	}
+
 	public void SpawnPlayer( OrionPlayerController player, PlayerRole role )
 	{
 		if ( !player.IsValid() )
@@ -30,25 +65,14 @@ public class OrionGameManager : Component
 		player.UpdatePlayerVisuals();
 		player.SetupLoadoutForRole();
 
-		Transform target = role switch
-		{
-			PlayerRole.DClass => DBlockSpawn.Transform.World,
-			PlayerRole.Guard => GuardSpawn.Transform.World,
-			PlayerRole.Researcher => SurfaceSpawn.Transform.World,
-			_ => DBlockSpawn.Transform.World
-		};
+		Transform target = GetSpawnTransformForRole( role );
 
 		player.Transform.World = target;
 		player.Network.ClearInterpolation();
 
-		if ( player.PlayerCamera.IsValid() )
-		{
-			player.PlayerCamera.Enabled = player.GameObject.Network.IsOwner;
-			player.PlayerCamera.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * player.StandingEyeHeight;
-			player.PlayerCamera.WorldRotation = player.GameObject.WorldRotation;
-		}
+		player.ApplySpawnOnOwner( target.Position, target.Rotation );
 
-		Log.Info( $"[SPAWN] {player.GameObject.Name} assigned to {role} and moved to sector." );
+		Log.Info( $"[SPAWN] {player.GameObject.Name} assigned to {role} and moved to {target.Position}" );
 	}
 
 
@@ -76,28 +100,13 @@ public class OrionGameManager : Component
 
 
 		// 2. Move to Spawn Point first
-		Transform target = player.CurrentRole switch
-		{
-			PlayerRole.DClass => DBlockSpawn.Transform.World,
-			PlayerRole.Guard => GuardSpawn.Transform.World,
-			PlayerRole.Researcher => SurfaceSpawn.Transform.World,
-			_ => DBlockSpawn.Transform.World
-		};
+		Transform target = GetSpawnTransformForRole( player.CurrentRole );
 
 		player.Transform.World = target;
 		player.Network.ClearInterpolation();
 
-		// 3. Reset look state so camera + shooting direction match the new spawn
-		player.ResetLookAfterRespawn();
+		player.ApplySpawnOnOwner( target.Position, target.Rotation );
 
-		// 4. Re-enable/update camera AFTER teleport + look reset
-		var cam = player.PlayerCamera;
-		if ( cam.IsValid() )
-		{
-			cam.Enabled = player.GameObject.Network.IsOwner;
-			cam.WorldPosition = player.GameObject.WorldPosition + Vector3.Up * 64f;
-			cam.WorldRotation = Rotation.From( player.NetworkLookAngles );
-		}
 
 		player.IsInvincible = true;
 		player.StartInvincibility( 1.0f ); // 1 second
@@ -105,7 +114,7 @@ public class OrionGameManager : Component
 		player.ForceSyncHealthState();
 		player.UpdatePlayerVisuals();
 		player.SaveGame();
-		Log.Info( "[RESET] Player teleported, revived, and progress saved." );
+		Log.Info( $"[RESET] Player teleported, revived, and progress saved. Role={player.CurrentRole} Spawn={target.Position}" );
 	}
 
 

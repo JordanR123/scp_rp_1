@@ -214,6 +214,83 @@
           "Children": []
         },
         {
+          "__guid": "5e16a88a-90a8-41fe-bcd7-24600667100e",
+          "__version": 2,
+          "Flags": 0,
+          "Name": "Floor Research Room",
+          "Position": "100,-100,0",
+          "Rotation": "0,0,0,1",
+          "Scale": "1,1,1",
+          "Tags": "",
+          "Enabled": true,
+          "NetworkMode": 2,
+          "NetworkFlags": 0,
+          "NetworkOrphaned": 0,
+          "NetworkTransmit": true,
+          "OwnerTransfer": 1,
+          "Components": [
+            {
+              "__type": "Sandbox.ModelRenderer",
+              "__guid": "1d1dd6c5-3ec4-4750-bf74-cd06e7a7a26e",
+              "__enabled": true,
+              "Flags": 0,
+              "BodyGroups": 18446744073709551615,
+              "CreateAttachments": false,
+              "LodOverride": null,
+              "MaterialGroup": null,
+              "MaterialOverride": null,
+              "Materials": {
+                "indexed": {
+                  "0": "dev/helper/testgrid.vmat"
+                }
+              },
+              "Model": "models/dev/plane.vmdl",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "RenderOptions": {
+                "GameLayer": true,
+                "OverlayLayer": false,
+                "BloomLayer": false,
+                "AfterUILayer": false
+              },
+              "RenderType": "On",
+              "Tint": "1,1,1,1"
+            },
+            {
+              "__type": "Sandbox.PlaneCollider",
+              "__guid": "1da10d36-410a-427d-9a31-1caf5f5960d3",
+              "__enabled": true,
+              "Flags": 0,
+              "Center": "0,0,0",
+              "ColliderFlags": 0,
+              "Elasticity": null,
+              "Friction": null,
+              "IsTrigger": false,
+              "Normal": "0,0,1",
+              "OnComponentDestroy": null,
+              "OnComponentDisabled": null,
+              "OnComponentEnabled": null,
+              "OnComponentFixedUpdate": null,
+              "OnComponentStart": null,
+              "OnComponentUpdate": null,
+              "OnObjectTriggerEnter": null,
+              "OnObjectTriggerExit": null,
+              "OnTriggerEnter": null,
+              "OnTriggerExit": null,
+              "RollingResistance": null,
+              "Scale": "100,100",
+              "Static": true,
+              "Surface": null,
+              "SurfaceVelocity": "0,0,0"
+            }
+          ],
+          "Children": []
+        },
+        {
           "__guid": "a0e95e67-b43a-4742-9b22-31827e51869b",
           "__version": 2,
           "Flags": 0,
@@ -2098,8 +2175,8 @@
           "__guid": "94f6ce78-89f9-4644-8989-0dd4e6e6da70",
           "__version": 2,
           "Flags": 0,
-          "Name": "Spawn Main",
-          "Position": "-3.065784,-623.2386,-0.0000000004656613",
+          "Name": "Spawn Researcher",
+          "Position": "500.6,-623.2386,-0.0000000004656613",
           "Rotation": "0,0,0,1",
           "Scale": "1,1,1",
           "Tags": "",
@@ -2527,7 +2604,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "22dcf9af-5487-49a3-819c-53999e0075c1"
+          "$blob": "ed438d41-f007-477e-bc12-25724c91bc2e"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

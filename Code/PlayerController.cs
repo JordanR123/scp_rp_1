@@ -19,6 +19,7 @@ public class PlayerData
 
 public partial class OrionPlayerController : Component, Component.IDamageable
 {
+	[Sync( Flags = SyncFlags.FromHost )]
 	[Property] public PlayerRole CurrentRole { get; set; } = PlayerRole.DClass;
 	[Property] public int PlayerLevel { get; set; } = 1;
 	[Property] public float Experience { get; set; } = 0f;
@@ -30,7 +31,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 
 	[Sync] public bool ShowXpPopup { get; set; }
-	[Sync] public bool HasChosenRole { get; set; } = false;
+	[Sync( Flags = SyncFlags.FromHost )]
+	public bool HasChosenRole { get; set; } = false;
 	[Sync] public string XpPopupMessage { get; set; } = "";
 
 
@@ -76,6 +78,18 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property, Group( "Death" )] public GameObject RagdollPrefab { get; set; }
 
 
+	// Weapon System
+	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
+	public OrionWeapon ActiveWeapon => GetWeaponInSlot( CurrentSlot );
+
+	[Sync( Flags = SyncFlags.FromHost )] public int CurrentSlot { get; set; } = 0;
+	[Sync( Flags = SyncFlags.FromHost )] public bool HasGun { get; set; } = false;
+
+	[Sync( Flags = SyncFlags.FromHost )] public int AmmoInMagazine { get; set; } = 30;
+	[Sync( Flags = SyncFlags.FromHost )] public bool IsReloading { get; set; } = false;
+
+	[Property, Group( "Weapon" )] public float ReloadTime { get; set; } = 1.8f;
+
 	private string SaveFileName
 	{
 		get
@@ -85,17 +99,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
-
-	// Weapon System
-	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
-	public OrionWeapon ActiveWeapon { get; set; }
-	[Sync] public int CurrentSlot { get; set; } = 0;
-	[Sync] public bool HasGun { get; set; } = false;
-
-	[Sync( Flags = SyncFlags.FromHost )] public int AmmoInMagazine { get; set; } = 30;
-	[Sync( Flags = SyncFlags.FromHost )] public bool IsReloading { get; set; } = false;
-
-	[Property, Group( "Weapon" )] public float ReloadTime { get; set; } = 1.8f;
 
 	private TimeUntil _reloadTimer;
 
@@ -405,6 +408,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_currentEyeHeight = StandingEyeHeight;
 
 		NetworkLookAngles = new Angles( _pitch, _yaw, 0f );
+
+		var movementController = Components.Get<Sandbox.PlayerController>( FindMode.EverythingInSelfAndChildren );
+		if ( movementController.IsValid() )
+		{
+			movementController.EyeAngles = new Angles( _pitch, _yaw, 0f );
+		}
+
 		NetworkEyePosition = GameObject.WorldPosition + Vector3.Up * _currentEyeHeight;
 
 		RefreshLocalOwnershipState();
@@ -444,35 +454,121 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( !GameObject.Network.IsOwner )
 			return;
 
+		RequestChooseRoleOnHost( role );
+	}
+
+	[Rpc.Host]
+	private void RequestChooseRoleOnHost( PlayerRole role )
+	{
 		var manager = Scene.GetAllComponents<OrionGameManager>().FirstOrDefault();
 		if ( !manager.IsValid() )
 		{
-			Log.Warning( "[ROLE] Game manager not found." );
+			Log.Warning( "[ROLE HOST] Game manager not found." );
 			return;
 		}
 
 		manager.SpawnPlayer( this, role );
+
 		HideRoleSelect();
 		RefreshLocalOwnershipState();
 
-		Log.Info( $"[ROLE] {GameObject.Name} chose {role}" );
+		Log.Info( $"[ROLE HOST] {GameObject.Name} chose {role}" );
+	}
+
+
+	[Rpc.Owner]
+	public void ApplySpawnOnOwner( Vector3 position, Rotation rotation )
+	{
+		GameObject.WorldPosition = position;
+		GameObject.WorldRotation = rotation;
+		Network.ClearInterpolation();
+
+		var angles = rotation.Angles();
+
+		IsDead = false;
+		IsCrouching = false;
+		TimeSinceDeath = 0f;
+
+		_yaw = angles.yaw;
+		_pitch = 0f;
+
+		var movementController = Components.Get<Sandbox.PlayerController>( FindMode.EverythingInSelfAndChildren );
+		if ( movementController.IsValid() )
+		{
+			movementController.EyeAngles = new Angles( _pitch, _yaw, 0f );
+		}
+
+		// Force body yaw to the same value we use for the camera
+		GameObject.WorldRotation = Rotation.FromYaw( _yaw );
+
+		_deathLocation = position;
+		_deathLookAngles = new Angles( _pitch, _yaw, 0f );
+
+		NetworkLookAngles = _deathLookAngles;
+
+		_currentEyeHeight = GetTargetEyeHeight();
+		NetworkEyePosition = GetEyeWorldPosition();
+
+		if ( EyeAnchor.IsValid() )
+		{
+			EyeAnchor.LocalPosition = Vector3.Zero;
+			EyeAnchor.LocalRotation = Rotation.Identity;
+		}
+
+		if ( PlayerCamera.IsValid() )
+		{
+			PlayerCamera.Enabled = true;
+			PlayerCamera.LocalPosition = Vector3.Zero;
+			PlayerCamera.LocalRotation = Rotation.Identity;
+			PlayerCamera.WorldRotation = Rotation.From( NetworkLookAngles );
+			PlayerCamera.WorldPosition = GetEyeWorldPosition();
+		}
+
+		_respawnFireLock = 0.05f;
+
+		UpdateWeaponVisibility();
+		UpdateThirdPersonBodyPose();
+		RefreshLocalOwnershipState();
+	}
+
+
+	[Rpc.Owner]
+	private void ApplyDeathStateOnOwner( Vector3 deathPosition, Angles deathAngles )
+	{
+		_deathLocation = deathPosition;
+		_deathLookAngles = deathAngles;
+
+		_yaw = deathAngles.yaw;
+		_pitch = deathAngles.pitch;
+		_currentEyeHeight = GetTargetEyeHeight();
+
+		NetworkLookAngles = _deathLookAngles;
+		NetworkEyePosition = _deathLocation + Vector3.Up * _currentEyeHeight;
+
+		if ( PlayerCamera.IsValid() )
+		{
+			PlayerCamera.Enabled = true;
+			PlayerCamera.WorldPosition = _deathLocation + Vector3.Up * _currentEyeHeight;
+			PlayerCamera.WorldRotation = Rotation.From( _deathLookAngles );
+		}
 	}
 
 
 
 	private void RefreshLocalOwnershipState()
 	{
-		bool isOwner = GameObject.Network.IsOwner && !IsProxy;
+		// If we are NOT a proxy, we are the local player
+		bool isLocal = !IsProxy;
 
 		if ( PlayerCamera.IsValid() )
 		{
-			PlayerCamera.Enabled = isOwner;
+			PlayerCamera.Enabled = isLocal;
 		}
 
 		UpdateWeaponVisibility();
 		UpdateThirdPersonBodyPose();
 
-		Log.Info( $"[OWNER STATE] {GameObject.Name} | IsOwner={GameObject.Network.IsOwner} | IsProxy={IsProxy} | CameraEnabled={isOwner}" );
+		Log.Info( $"[OWNER FIX] Player: {GameObject.Name} | IsProxy: {IsProxy} | CameraEnabled: {isLocal}" );
 	}
 
 	private GameObject _roleUiInstance;
@@ -649,16 +745,15 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( !PlayerCamera.IsValid() )
 			return;
 
-		// Keep the body locked where it died
-		GameObject.WorldPosition = _deathLocation;
-		GameObject.WorldRotation = Rotation.FromYaw( _deathLookAngles.yaw );
-
 		var lookDelta = Input.AnalogLook;
 
 		_deathLookAngles.yaw += lookDelta.yaw;
 		_deathLookAngles.pitch += lookDelta.pitch;
 		_deathLookAngles.pitch = _deathLookAngles.pitch.Clamp( -80f, 80f );
 
+		// IMPORTANT:
+		// Do NOT keep forcing the pawn transform while dead.
+		// On dedicated this can overwrite the respawn transform on a stale dead frame.
 		PlayerCamera.WorldPosition = _deathLocation + Vector3.Up * _currentEyeHeight;
 		PlayerCamera.WorldRotation = Rotation.From( _deathLookAngles );
 	}
@@ -678,7 +773,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 				Log.Info( $"[INVINCIBILITY END] {GameObject.Name}" );
 			}
 		}
-
 		UpdateThirdPersonBodyPose();
 
 		if ( IsProxy || !GameObject.Network.IsOwner )
@@ -696,8 +790,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			// Let the UI text entry handle Enter.
 			return;
 		}
-
-
 
 
 
@@ -750,6 +842,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_yaw += look.yaw;
 		_pitch += look.pitch;
 		_pitch = _pitch.Clamp( -80f, 80f );
+
+		// NEW: Pass angles to native controller so body and interaction center align
+		var movementController = Components.Get<Sandbox.PlayerController>( FindMode.EverythingInSelfAndChildren );
+		if ( movementController.IsValid() )
+		{
+			movementController.EyeAngles = new Angles( _pitch, _yaw, 0f );
+		}
 
 		UpdateLivingCamera();
 
@@ -813,9 +912,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		_currentEyeHeight = MathX.Lerp( _currentEyeHeight, GetTargetEyeHeight(), Time.Delta * EyeLerpSpeed );
 
-		// If you still want to use EyeAnchor as the base standing point, do not use it directly
-		// as the final camera source unless it is guaranteed to move correctly on dedicated.
-		// For now, use the player position + synced crouch height.
+		if ( EyeAnchor.IsValid() )
+		{
+			return EyeAnchor.WorldPosition;
+		}
+
 		return GameObject.WorldPosition + Vector3.Up * _currentEyeHeight;
 	}
 
@@ -823,6 +924,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		if ( !PlayerCamera.IsValid() )
 			return;
+
 
 		PlayerCamera.WorldPosition = GetEyeWorldPosition();
 		PlayerCamera.WorldRotation = Rotation.FromYaw( _yaw ) * Rotation.FromPitch( _pitch );
@@ -898,13 +1000,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( _respawnFireLock > 0f )
 			return;
 
-		// Slot 1 = fists, always allowed
 		if ( Input.Pressed( "Slot1" ) )
-			EquipWeapon( 0 );
+			RequestEquipWeaponOnHost( 0 );
 
-		// Slot 2 = gun, only if player currently has a gun
 		if ( Input.Pressed( "Slot2" ) && HasGun )
-			EquipWeapon( 1 );
+			RequestEquipWeaponOnHost( 1 );
 
 		// Mouse wheel handling
 		if ( Inventory.Count > 1 )
@@ -912,17 +1012,17 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			if ( Input.MouseWheel.y > 0 )
 			{
 				if ( HasGun )
-					EquipWeapon( (CurrentSlot + 1) % 2 );
+					RequestEquipWeaponOnHost( (CurrentSlot + 1) % 2 );
 				else
-					EquipWeapon( 0 );
+					RequestEquipWeaponOnHost( 0 );
 			}
 
 			if ( Input.MouseWheel.y < 0 )
 			{
 				if ( HasGun )
-					EquipWeapon( (CurrentSlot - 1 + 2) % 2 );
+					RequestEquipWeaponOnHost( (CurrentSlot - 1 + 2) % 2 );
 				else
-					EquipWeapon( 0 );
+					RequestEquipWeaponOnHost( 0 );
 			}
 		}
 
@@ -1277,30 +1377,47 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			return;
 
 		CurrentSlot = slotIndex;
-		ActiveWeapon = Inventory[slotIndex];
-
 		UpdateWeaponVisibility();
 	}
 
 
+	[Rpc.Host]
+	private void RequestEquipWeaponOnHost( int slotIndex )
+	{
+		if ( slotIndex < 0 || slotIndex >= Inventory.Count )
+			return;
+
+		if ( slotIndex == 1 && !HasGun )
+			return;
+
+		EquipWeapon( slotIndex );
+	}
+
 	private void UpdateWeaponVisibility()
 	{
-		bool isLocalFirstPerson = GameObject.Network.IsOwner && !IsProxy && !IsDead;
+		bool isLocalFirstPerson = !IsProxy && !IsDead;
 
 		for ( int i = 0; i < Inventory.Count; i++ )
 		{
 			var weapon = Inventory[i];
 			if ( !weapon.IsValid() )
+			{
+				Log.Warning( $"[VISIBILITY] Slot {i} is invalid or empty." );
 				continue;
+			}
 
 			bool isActive = i == CurrentSlot;
 
+			// Default everything to hidden
 			weapon.SetFirstPersonVisible( false );
 			weapon.SetThirdPersonVisible( false );
 
 			// Local first-person active weapon
 			if ( isLocalFirstPerson && isActive && PlayerCamera.IsValid() )
 			{
+				Log.Info( $"[VISIBILITY] Local Owner showing {weapon.WeaponName} in First Person. ViewOffset: {weapon.ViewOffset}" );
+				Log.Info( $"[VISIBILITY] Showing {weapon.WeaponName} in FIRST PERSON for {GameObject.Name}" );
+
 				weapon.GameObject.Parent = PlayerCamera.GameObject;
 				weapon.LocalPosition = Vector3.Zero;
 				weapon.LocalRotation = Rotation.Identity;
@@ -1312,10 +1429,17 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 					weapon.ViewModel.LocalPosition = weapon.ViewOffset;
 					weapon.ViewModel.LocalRotation = Rotation.Identity;
 				}
+				else
+				{
+					Log.Warning( $"[VISIBILITY] {weapon.WeaponName} is active but has NO ViewModel assigned!" );
+				}
 			}
 			// Third-person active weapon for other players
 			else if ( isActive && RightHandAnchor.IsValid() && i == 1 )
 			{
+				Log.Info( $"[VISIBILITY] Proxy/ThirdPerson showing {weapon.WeaponName} on RightHandAnchor." );
+				Log.Info( $"[VISIBILITY] Showing {weapon.WeaponName} in THIRD PERSON for {GameObject.Name}" );
+
 				weapon.GameObject.Parent = RightHandAnchor;
 				weapon.LocalPosition = Vector3.Zero;
 				weapon.LocalRotation = Rotation.Identity;
@@ -1328,8 +1452,6 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 					weapon.WorldModel.LocalRotation = Rotation.From( weapon.WorldAngles );
 				}
 			}
-
-
 		}
 	}
 
@@ -1365,6 +1487,9 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		Health = newHealth;
 		IsDead = newIsDead;
+
+		UpdateWeaponVisibility();
+		UpdateThirdPersonBodyPose();
 
 		Log.Info( $"[SYNC] {GameObject.Name} Health: {Health}, Dead: {IsDead}" );
 	}
@@ -1402,13 +1527,13 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			? PlayerCamera.WorldRotation.Angles()
 			: GameObject.WorldRotation.Angles();
 
+		ApplyDeathStateOnOwner( _deathLocation, _deathLookAngles );
+
 		foreach ( var weapon in Inventory )
 		{
 			if ( weapon.IsValid() )
 				weapon.SetVisible( false );
 		}
-
-		ActiveWeapon = null;
 
 		if ( RagdollPrefab.IsValid() )
 		{

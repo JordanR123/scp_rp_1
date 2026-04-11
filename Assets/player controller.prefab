@@ -211,9 +211,15 @@
         },
         "ChatManager": null,
         "ClearanceLevel": 0,
+        "CrouchingEyeHeight": 42,
         "CurrentRole": "DClass",
         "DClassClothing": "clothing/dclass_jumpsuit.clothing",
         "Experience": 0,
+        "EyeAnchor": {
+          "_type": "gameobject",
+          "go": "b58e9769-5f81-4f17-9d4f-06baf89bb999"
+        },
+        "EyeLerpSpeed": 12,
         "GuardClothing": "clothing/guard_army_shirt.clothing",
         "HitSound": "sounds/hitanddamagedsound.sound",
         "HudState": null,
@@ -255,6 +261,7 @@
           "_type": "gameobject",
           "go": "fa420a23-463d-47e1-9220-f396e080acbc"
         },
+        "StandingEyeHeight": 64,
         "VoiceChat": {
           "_type": "component",
           "component_id": "562fc133-4df6-4dc7-884b-f82a0bdbfe70",
