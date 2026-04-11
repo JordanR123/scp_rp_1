@@ -7,8 +7,19 @@
 <root style="pointer-events: @((IsDead || IsChatOpen) ? "all" : "none")">
     <div class="hud-root @(IsDead ? "is-dead" : "")">
 
-        <div class="damage-vignette" @ref="DamageVignette"></div>
+        <div class="damage-vignette" style="opacity:@DamageOpacity"></div>
+
         <div class="crosshair-dot"></div>
+
+        @if ( ShowHitMarker )
+        {
+            <div class="hitmarker">
+                <div class="arm tl"></div>
+                <div class="arm tr"></div>
+                <div class="arm bl"></div>
+                <div class="arm br"></div>
+            </div>
+        }
 
         @* Top Center: Lockdown Banner *@
         @if (ShowDenied)
@@ -23,10 +34,10 @@
             
             @* Controls Bar - Dark text on white keys *@
             <div class="controls-bar">
-                <div class="control-item"><div class="key">ENTER</div><label>Chat</label></div>
-                <div class="control-item"><div class="key">TAB</div><label>Menu</label></div>
-                <div class="control-item"><div class="key">B</div><label>XP</label></div>
-                <div class="control-item"><div class="key">V</div><label>Voice</label></div>
+                <div class="control-item"><div class="key">ENTER</div><label>= <span class="label-text">Chat</label></div>
+                <div class="control-item"><div class="key">TAB</div><label>= <span class="label-text">Menu</label></div>
+                <div class="control-item"><div class="key">B</div><label>= <span class="label-text">XP</label></div>
+                <div class="control-item"><div class="key">V</div><label>= <span class="label-text">Voice</span></label></div>
             </div>
 
             @* Player Identity Card (Widened to 480px) *@
@@ -89,6 +100,20 @@
                 }
             </div>
         }
+
+
+        @if ( IsDead )
+        {
+            <div class="respawn-overlay">
+                <div class="respawn-panel">
+                    <label class="respawn-title">YOU DIED</label>
+                    <label class="respawn-subtitle">Return to your assigned role.</label>
+                    <button class="respawn-button" onclick="@RespawnLocalPlayer">RESPAWN</button>
+                </div>
+            </div>
+        }
+
+
     </div>
 </root>
 
@@ -105,7 +130,6 @@
     float TimeSinceDamage => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastDamage : 100f;
     float TimeSinceConfirmedHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastConfirmedHit : 100f;
 
-    Panel DamageVignette;
     OrionChatTextEntry ChatInput;
 
     float HealthFraction
@@ -118,6 +142,32 @@
             return Math.Clamp( LocalPlayer.Health / LocalPlayer.MaxHealth, 0f, 1f );
         }
     }
+
+    float DamageOpacity
+    {
+        get
+        {
+            if ( !LocalPlayer.IsValid() )
+                return 0f;
+
+            float baseOpacity = LowHealthAmount * 0.45f;
+            float pulseOpacity = DamagePulseAmount * 0.55f;
+            return Math.Clamp( baseOpacity + pulseOpacity, 0f, 0.95f );
+        }
+    }
+
+    bool ShowHitMarker
+    {
+        get
+        {
+            if ( !LocalPlayer.IsValid() )
+                return false;
+
+            const float hitMarkerDuration = 0.12f;
+            return TimeSinceConfirmedHit < hitMarkerDuration;
+        }
+    }
+
 
     float LowHealthAmount => 1f - HealthFraction;
 
@@ -133,53 +183,39 @@
         }
     }
 
-    void UpdateDamageVignette()
+
+    protected override int BuildHash()
     {
-        if ( DamageVignette is null || !DamageVignette.IsValid() )
-            return;
-
         if ( !LocalPlayer.IsValid() )
-        {
-            DamageVignette.Style.Opacity = 0f;
-            return;
-        }
+            return 0;
 
-        float baseOpacity = LowHealthAmount * 0.75f;
-        float pulseOpacity = DamagePulseAmount * 0.65f;
-        float finalOpacity = Math.Clamp( baseOpacity + pulseOpacity, 0f, 1f );
+        int damageBucket = (int)(TimeSinceDamage * 20f);
+        int hitBucket = (int)(TimeSinceConfirmedHit * 40f);
 
-        float borderThickness = 18f + (LowHealthAmount * 90f);
+        int playerHashA = HashCode.Combine(
+            LocalPlayer.HasGun,
+            LocalPlayer.CurrentSlot,
+            LocalPlayer.CurrentAmmo,
+            LocalPlayer.CurrentMagazineSize,
+            LocalPlayer.Health,
+            LocalPlayer.MaxHealth,
+            LocalPlayer.IsDead,
+            damageBucket
+        );
 
-        DamageVignette.Style.Opacity = finalOpacity;
-        DamageVignette.Style.BorderTopWidth = borderThickness;
-        DamageVignette.Style.BorderBottomWidth = borderThickness;
-        DamageVignette.Style.BorderLeftWidth = borderThickness;
-        DamageVignette.Style.BorderRightWidth = borderThickness;
+        int playerHash = HashCode.Combine(
+            playerHashA,
+            hitBucket
+        );
+
+        int hudHash = HashCode.Combine(
+            HudState?.ShowChat ?? false,
+            HudState?.ChatDraft ?? "",
+            HudState?.IsVoiceKeyHeld ?? false
+        );
+
+        return HashCode.Combine( playerHash, hudHash );
     }
-
-protected override int BuildHash()
-{
-    if ( !LocalPlayer.IsValid() )
-        return 0;
-
-    int playerHash = HashCode.Combine(
-        LocalPlayer.HasGun,
-        LocalPlayer.CurrentSlot,
-        LocalPlayer.CurrentAmmo,
-        LocalPlayer.CurrentMagazineSize,
-        LocalPlayer.Health,
-        LocalPlayer.MaxHealth,
-        LocalPlayer.IsDead
-    );
-
-    int hudHash = HashCode.Combine(
-        HudState?.ShowChat ?? false,
-        HudState?.ChatDraft ?? "",
-        HudState?.IsVoiceKeyHeld ?? false
-    );
-
-    return HashCode.Combine( playerHash, hudHash );
-}
 
     OrionHUDState GetHudState()
     {
@@ -309,7 +345,6 @@ protected override int BuildHash()
 
         protected override void OnUpdate()
         {
-	        UpdateDamageVignette();
 
 	        var state = GetHUDState();
 	        if ( !state.IsValid() )

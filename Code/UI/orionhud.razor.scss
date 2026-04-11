@@ -5,6 +5,136 @@
     color: white;
 }
 
+
+.hud-root {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+}
+
+.damage-vignette {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    pointer-events: none;
+    opacity: 0;
+    /* safer fallback */
+    background-color: rgba(255, 0, 0, 0.18);
+}
+
+.crosshair-dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.hitmarker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+
+    .arm {
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        background-color: white;
+    }
+
+    .tl {
+        left: 0;
+        top: 6px;
+        transform: rotate(-45deg);
+    }
+
+    .tr {
+        right: 0;
+        top: 6px;
+        transform: rotate(45deg);
+    }
+
+    .bl {
+        left: 0;
+        bottom: 6px;
+        transform: rotate(45deg);
+    }
+
+    .br {
+        right: 0;
+        bottom: 6px;
+        transform: rotate(-45deg);
+    }
+}
+
+.respawn-overlay {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.72);
+    pointer-events: all;
+}
+
+.respawn-panel {
+    min-width: 420px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: rgba(8, 8, 8, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 4px solid white;
+    border-radius: 16px;
+    pointer-events: all;
+}
+
+.respawn-button {
+    margin-top: 10px;
+    padding: 14px 18px;
+    justify-content: center;
+    background-color: white;
+    color: black;
+    font-size: 16px;
+    font-weight: 900;
+    border-radius: 10px;
+    cursor: pointer;
+    pointer-events: all;
+
+    &:hover {
+        background-color: #dcdcdc;
+    }
+}
+
+.respawn-title {
+    font-size: 34px;
+    font-weight: 900;
+    color: white;
+}
+
+.respawn-subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+}
+
+
 .upscale-hud {
     transform: scale(1);
     transform-origin: left bottom;
@@ -106,7 +236,7 @@
 .level-badge {
     background-color: #ffffff;
     color: #000;
-    font-size: 15px; 
+    font-size: 18px; 
     font-weight: 900;
     padding: 4px 14px;
     border-radius: 2px;
@@ -115,7 +245,7 @@
     .xp-pct {
         font-weight: 700;
         opacity: 0.6;
-        font-size: 13px;
+        font-size: 16px;
         margin-left: 4px;
     }
 }
@@ -123,7 +253,7 @@
 .clearance-badge {
     background-color: #ffc107;
     color: #000;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 900;
     padding: 4px 14px;
     border-radius: 2px;
@@ -156,7 +286,30 @@
 
         .health-bar-fill {
             height: 100%;
+            transition: background-color 0.4s ease; // Smooths the color swap
+            // Default/Full Health
             background-color: #ffffff;
+
+            &.healthy {
+                color: #ffffff;
+            }
+            // 100-75%
+            &.scratched {
+                color: #ffcccc;
+            }
+            // 75-50%
+            &.injured {
+                color: #ff6666;
+            }
+            // 50-25%
+            &.critical {
+                color: #bb0000;
+            }
+            // 25-10%
+            &.dying {
+                color: #8b0000;
+            }
+            // 10-1%
         }
 
         .health-text {
@@ -164,6 +317,7 @@
             font-size: 26px;
             min-width: 45px;
             text-align: right;
+            color: #ffffff;
         }
     }
 }
