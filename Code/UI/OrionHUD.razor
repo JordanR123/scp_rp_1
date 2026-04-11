@@ -33,9 +33,13 @@
         @* XP and Error Notification Popup *@
         @if ( LocalPlayer.IsValid() && LocalPlayer.ShowXpPopup )
         {
-            <div class="xp-notification-popup">
-                <label class="popup-text">@LocalPlayer.XpPopupMessage</label>
-            </div>
+	        var popupClass = LocalPlayer.CurrentXpPopupType == XpPopupType.Success
+		        ? "xp-notification-popup success"
+		        : "xp-notification-popup error";
+
+	        <div class="@popupClass">
+		        <label class="popup-text">@LocalPlayer.XpPopupMessage</label>
+	        </div>
         }
 
         @* Bottom Left Stack (1.1x Scale) *@

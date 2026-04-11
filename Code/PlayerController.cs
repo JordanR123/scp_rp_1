@@ -7,6 +7,12 @@ using System.Collections.Generic;
 
 public enum PlayerRole { DClass, Guard, Researcher }
 
+public enum XpPopupType
+{
+	Error,
+	Success
+}
+
 public class PlayerData
 {
 	public int Level { get; set; }
@@ -31,9 +37,10 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 
 	[Sync] public bool ShowXpPopup { get; set; }
+	[Sync] public string XpPopupMessage { get; set; } = "";
+	[Sync] public XpPopupType CurrentXpPopupType { get; set; } = XpPopupType.Error;
 	[Sync( Flags = SyncFlags.FromHost )]
 	public bool HasChosenRole { get; set; } = false;
-	[Sync] public string XpPopupMessage { get; set; } = "";
 
 
 
@@ -351,6 +358,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 
 	// XP System
+
 	private const float ResearcherXpGiftAmount = 100f;
 	private static readonly TimeSpan ResearcherXpCooldown = TimeSpan.FromMinutes( 0.1 );
 	private static readonly TimeSpan XpPopupDuration = TimeSpan.FromSeconds( 3 );
@@ -378,17 +386,18 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		_nextResearcherReceiveXpUtc = DateTime.UtcNow + ResearcherXpCooldown;
 	}
 
-	private void ShowTimedXpPopupLocal( string message )
+	private void ShowTimedXpPopupLocal( string message, XpPopupType type = XpPopupType.Error )
 	{
 		XpPopupMessage = message;
+		CurrentXpPopupType = type;
 		ShowXpPopup = true;
 		_xpPopupUntilUtc = DateTime.UtcNow + XpPopupDuration;
 	}
 
 	[Rpc.Owner]
-	private void ShowTimedXpPopup( string message )
+	private void ShowTimedXpPopup( string message, XpPopupType type = XpPopupType.Error )
 	{
-		ShowTimedXpPopupLocal( message );
+		ShowTimedXpPopupLocal( message, type );
 	}
 
 	private void UpdateXpPopup()
@@ -397,6 +406,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			ShowXpPopup = false;
 			XpPopupMessage = "";
+			CurrentXpPopupType = XpPopupType.Error;
 		}
 	}
 
@@ -404,19 +414,19 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		if ( CurrentRole != PlayerRole.Researcher )
 		{
-			ShowTimedXpPopup( "YOU'RE NOT A RESEARCHER" );
+			ShowTimedXpPopup( "YOU'RE NOT A RESEARCHER", XpPopupType.Error );
 			return false;
 		}
 
 		if ( target == null || !target.IsValid() )
 		{
-			ShowTimedXpPopup( "NEED TARGET" );
+			ShowTimedXpPopup( "NEED TARGET", XpPopupType.Error );
 			return false;
 		}
 
 		if ( target == this )
 		{
-			ShowTimedXpPopup( "NEED TARGET" );
+			ShowTimedXpPopup( "NEED TARGET", XpPopupType.Error );
 			return false;
 		}
 
@@ -425,19 +435,19 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			var waitSeconds = (int)Math.Ceiling( (_nextResearcherGiveXpUtc - DateTime.UtcNow).TotalSeconds );
 			waitSeconds = Math.Max( waitSeconds, 1 );
 
-			ShowTimedXpPopup( $"WAIT {waitSeconds} SECONDS" );
+			ShowTimedXpPopup( $"WAIT {waitSeconds} SECONDS", XpPopupType.Error );
 			return false;
 		}
 
 		if ( !target.CanReceiveResearcherXp )
 		{
-			ShowTimedXpPopup( "INVALID TARGET" );
+			ShowTimedXpPopup( "INVALID TARGET", XpPopupType.Error );
 			return false;
 		}
 
 		if ( !target.IsResearcherReceiveReady )
 		{
-			ShowTimedXpPopup( "TARGET ALREADY GOT XP" );
+			ShowTimedXpPopup( "TARGET ALREADY GOT XP", XpPopupType.Error );
 			return false;
 		}
 
@@ -451,8 +461,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		StartResearcherGiveCooldown();
 		target.StartResearcherReceiveCooldown();
 
-		ShowTimedXpPopup( $"GAVE {target.GameObject.Name.ToUpper()} 100 XP" );
-		target.ShowTimedXpPopup( "YOU RECEIVED 100 XP" );
+		ShowTimedXpPopup( $"GAVE {target.GameObject.Name.ToUpper()} 100 XP", XpPopupType.Success );
+		target.ShowTimedXpPopup( "YOU RECEIVED 100 XP", XpPopupType.Success );
 
 		target.SaveGame();
 		SaveGame();
@@ -470,16 +480,15 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		Log.Info( $"[DEBUG XP] {GameObject.Name} gained {amount} XP (Total: {Experience})" );
 
-		// Use your existing popup system (same as errors 👍)
-		ShowTimedXpPopup( $"+{amount} XP" );
+		ShowTimedXpPopup( $"+{amount} XP", XpPopupType.Success );
 
 		SaveGame();
 	}
 
-
-
-
 	// End of XP System
+
+
+
 
 	public float TimeSinceDeath { get; set; } = 0f;
 	private Vector3 _deathLocation;
@@ -1805,7 +1814,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		if ( !PlayerCamera.IsValid() )
 		{
-			ShowTimedXpPopupLocal( "PLAYER CAMERA NOT SET" );
+			ShowTimedXpPopupLocal( "PLAYER CAMERA NOT SET", XpPopupType.Error );
 			return;
 		}
 
@@ -1817,7 +1826,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( !tr.Hit || !tr.GameObject.IsValid() )
 		{
-			ShowTimedXpPopupLocal( "NO PLAYER TARGETED" );
+			ShowTimedXpPopupLocal( "NO PLAYER TARGETED", XpPopupType.Error );
 			return;
 		}
 
@@ -1825,7 +1834,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( !targetPlayer.IsValid() )
 		{
-			ShowTimedXpPopupLocal( "NO PLAYER TARGETED" );
+			ShowTimedXpPopupLocal( "NO PLAYER TARGETED", XpPopupType.Error );
 			return;
 		}
 
@@ -1855,7 +1864,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( leveledUp )
 		{
 			Log.Info( $"[LEVEL UP] {GameObject.Name} is now level {PlayerLevel}" );
-			ShowTimedXpPopup( levelUpMessage );
+			ShowTimedXpPopup( levelUpMessage, XpPopupType.Success );
 			SaveGame();
 		}
 	}
@@ -1899,7 +1908,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	{
 		if ( !targetObject.IsValid() )
 		{
-			ShowTimedXpPopup( "NO VALID PLAYER TARGETED" );
+			ShowTimedXpPopup( "NO VALID PLAYER TARGETED", XpPopupType.Error );
 			return;
 		}
 
@@ -1907,7 +1916,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 		if ( !targetPlayer.IsValid() )
 		{
-			ShowTimedXpPopup( "NO VALID PLAYER TARGETED" );
+			ShowTimedXpPopup( "NO VALID PLAYER TARGETED", XpPopupType.Error );
 			return;
 		}
 
