@@ -82,13 +82,24 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property] public List<OrionWeapon> Inventory { get; set; } = new();
 	public OrionWeapon ActiveWeapon => GetWeaponInSlot( CurrentSlot );
 
-	[Sync( Flags = SyncFlags.FromHost )] public int CurrentSlot { get; set; } = 0;
-	[Sync( Flags = SyncFlags.FromHost )] public bool HasGun { get; set; } = false;
+	[Sync( Flags = SyncFlags.FromHost )]
+	public bool HasGun { get; set; } = false;
+	[Sync( Flags = SyncFlags.FromHost ), Change( nameof( OnSlotSynced ) )]
+	public int CurrentSlot { get; set; } = 0;
 
 	[Sync( Flags = SyncFlags.FromHost )] public int AmmoInMagazine { get; set; } = 30;
 	[Sync( Flags = SyncFlags.FromHost )] public bool IsReloading { get; set; } = false;
 
 	[Property, Group( "Weapon" )] public float ReloadTime { get; set; } = 1.8f;
+
+	private void OnSlotSynced( int oldValue, int newValue )
+	{
+		Log.Info( $"[SYNC DEBUG] CurrentSlot arrived! Changed from {oldValue} to {newValue} on {GameObject.Name}. IsProxy: {IsProxy}" );
+
+		// Force the visual update now that we actually have the correct slot number
+		UpdateWeaponVisibility();
+		UpdateThirdPersonBodyPose();
+	}
 
 	private string SaveFileName
 	{
@@ -525,6 +536,8 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 
 		_respawnFireLock = 0.05f;
+
+		Log.Info( $"[SPAWN DEBUG] ApplySpawnOnOwner executing. The client currently thinks CurrentSlot is: {CurrentSlot}" );
 
 		UpdateWeaponVisibility();
 		UpdateThirdPersonBodyPose();
@@ -1395,65 +1408,60 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	private void UpdateWeaponVisibility()
 	{
-		bool isLocalFirstPerson = !IsProxy && !IsDead;
+		// FIX: Instead of just !IsDead (which is synced), 
+		// check if we are actually the local player and the camera is active.
+		bool isLocalFirstPerson = !IsProxy && PlayerCamera.IsValid() && PlayerCamera.Enabled;
+
+		Log.Info( $"[VISIBILITY DEBUG] Updating visibility. Slot={CurrentSlot}, FirstPerson={isLocalFirstPerson}, IsDead={IsDead}" );
 
 		for ( int i = 0; i < Inventory.Count; i++ )
 		{
 			var weapon = Inventory[i];
-			if ( !weapon.IsValid() )
-			{
-				Log.Warning( $"[VISIBILITY] Slot {i} is invalid or empty." );
-				continue;
-			}
+			if ( !weapon.IsValid() ) continue;
 
 			bool isActive = i == CurrentSlot;
 
-			// Default everything to hidden
+			// Reset visibility
 			weapon.SetFirstPersonVisible( false );
 			weapon.SetThirdPersonVisible( false );
 
-			// Local first-person active weapon
-			if ( isLocalFirstPerson && isActive && PlayerCamera.IsValid() )
+			// Standardize Parenting (Prevents the "gun on floor" glitch)
+			if ( RightHandAnchor.IsValid() )
 			{
-				Log.Info( $"[VISIBILITY] Local Owner showing {weapon.WeaponName} in First Person. ViewOffset: {weapon.ViewOffset}" );
-				Log.Info( $"[VISIBILITY] Showing {weapon.WeaponName} in FIRST PERSON for {GameObject.Name}" );
-
-				weapon.GameObject.Parent = PlayerCamera.GameObject;
-				weapon.LocalPosition = Vector3.Zero;
-				weapon.LocalRotation = Rotation.Identity;
-
-				weapon.SetFirstPersonVisible( true );
-
-				if ( weapon.ViewModel.IsValid() )
-				{
-					weapon.ViewModel.LocalPosition = weapon.ViewOffset;
-					weapon.ViewModel.LocalRotation = Rotation.Identity;
-				}
-				else
-				{
-					Log.Warning( $"[VISIBILITY] {weapon.WeaponName} is active but has NO ViewModel assigned!" );
-				}
-			}
-			// Third-person active weapon for other players
-			else if ( isActive && RightHandAnchor.IsValid() && i == 1 )
-			{
-				Log.Info( $"[VISIBILITY] Proxy/ThirdPerson showing {weapon.WeaponName} on RightHandAnchor." );
-				Log.Info( $"[VISIBILITY] Showing {weapon.WeaponName} in THIRD PERSON for {GameObject.Name}" );
-
 				weapon.GameObject.Parent = RightHandAnchor;
 				weapon.LocalPosition = Vector3.Zero;
 				weapon.LocalRotation = Rotation.Identity;
+			}
 
-				weapon.SetThirdPersonVisible( true );
-
-				if ( weapon.WorldModel.IsValid() )
+			if ( isActive )
+			{
+				if ( isLocalFirstPerson )
 				{
-					weapon.WorldModel.LocalPosition = weapon.WorldOffset;
-					weapon.WorldModel.LocalRotation = Rotation.From( weapon.WorldAngles );
+					// We are the local player, show the high-quality viewmodel
+					weapon.SetFirstPersonVisible( true );
+
+					if ( weapon.ViewModel.IsValid() )
+					{
+						weapon.ViewModel.Parent = PlayerCamera.GameObject;
+						weapon.ViewModel.LocalPosition = weapon.ViewOffset;
+						weapon.ViewModel.LocalRotation = Rotation.Identity;
+					}
+				}
+				else
+				{
+					// We are looking at another player (or our own corpse), show world model
+					weapon.SetThirdPersonVisible( true );
+
+					if ( weapon.ViewModel.IsValid() )
+					{
+						weapon.ViewModel.Parent = weapon.GameObject;
+					}
 				}
 			}
 		}
 	}
+
+
 
 	private void DestroyViewModel()
 	{
