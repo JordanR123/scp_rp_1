@@ -203,6 +203,10 @@
           "go": "4b9c779a-05c0-41f5-84ad-1e3fdb7859bc",
           "component_type": "CitizenAnimationHelper"
         },
+        "BodyAttackTrigger": "b_attack",
+        "BodyEmptyBool": "b_empty",
+        "BodyReloadSpeedFloat": "speed_reload",
+        "BodyReloadTrigger": "b_reload",
         "BodyRenderer": {
           "_type": "component",
           "component_id": "e43ce1ef-2973-4e9d-a92a-74cf3a5c58ca",
@@ -410,7 +414,7 @@
             },
             "RenderType": "On",
             "Sequence": {
-              "Name": "SMG_2H_Pose_Standing_01",
+              "Name": "SMG_2H_Reload_01",
               "Looping": true,
               "Blending": false
             },

@@ -76,6 +76,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	[Property, Group( "Visuals" )] public CitizenAnimationHelper BodyAnimator { get; set; }
 	[Property, Group( "Visuals" )] public GameObject RightHandAnchor { get; set; }
 
+	[Property, Group( "Animation" )] public string BodyAttackTrigger { get; set; } = "b_attack";
+	[Property, Group( "Animation" )] public string BodyReloadTrigger { get; set; } = "b_reload";
+	[Property, Group( "Animation" )] public string BodyEmptyBool { get; set; } = "b_empty";
+	[Property, Group( "Animation" )] public string BodyReloadSpeedFloat { get; set; } = "speed_reload";
+
 	[Property, Group( "Voice" )] public Voice VoiceChat { get; set; }
 
 	public bool IsVoiceKeyHeld { get; set; }
@@ -242,6 +247,11 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			return;
 
 		weapon.PlayReloadAnimation( emptyReload );
+
+		if ( slotIndex == 1 && HasGun && !IsDead )
+		{
+			TriggerBodyReloadAnimation( emptyReload, weapon.ReloadAnimSpeed );
+		}
 	}
 
 	private void UpdateReload()
@@ -875,6 +885,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			return;
 
 		BodyAnimator.Target = BodyRenderer;
+		BodyAnimator.DuckLevel = IsCrouching ? 1f : 0f;
 
 		if ( PlayerCamera.IsValid() )
 			BodyAnimator.EyeSource = PlayerCamera.GameObject;
@@ -905,6 +916,24 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		}
 	}
 
+
+	private void TriggerBodyAttackAnimation()
+	{
+		if ( !BodyRenderer.IsValid() )
+			return;
+
+		BodyRenderer.Set( BodyAttackTrigger, true );
+	}
+
+	private void TriggerBodyReloadAnimation( bool emptyReload, float reloadSpeed )
+	{
+		if ( !BodyRenderer.IsValid() )
+			return;
+
+		BodyRenderer.Set( BodyEmptyBool, emptyReload );
+		BodyRenderer.Set( BodyReloadSpeedFloat, reloadSpeed );
+		BodyRenderer.Set( BodyReloadTrigger, true );
+	}
 
 
 	public void OnDamage( in DamageInfo damage )
@@ -1354,16 +1383,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( !weapon.IsValid() )
 			return;
 
-		// Only animate the local first-person viewmodel for the owning player
-		bool isLocalOwner = GameObject.Network.IsOwner && !IsProxy;
+		weapon.PlayAttackAnimation();
 
-		if ( isLocalOwner && weapon.ViewModel.IsValid() )
+		// Only trigger body fire anim when actually using the gun slot.
+		if ( slotIndex == 1 && HasGun && !IsDead )
 		{
-			var renderer = weapon.ViewModel.Components.Get<SkinnedModelRenderer>();
-			if ( renderer.IsValid() )
-			{
-				renderer.Set( weapon.AttackTrigger, true );
-			}
+			TriggerBodyAttackAnimation();
 		}
 
 		if ( weapon.ShootSound is not null )

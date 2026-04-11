@@ -12,7 +12,7 @@ public class OrionWeapon : Component
 	[Property, Group( "Animation" )] public string ReloadSpeedFloat { get; set; } = "speed_reload";
 	[Property, Group( "Animation" )] public float ReloadAnimSpeed { get; set; } = 1.0f;
 
-	[Property] public Vector3 ViewOffset { get; set; } = new Vector3( 10, 10, -10 );
+	[Property] public Vector3 ViewOffset { get; set; } = new Vector3( 0, 0, 0 );
 
 	[Property] public GameObject WorldModel { get; set; }
 	[Property] public Vector3 WorldOffset { get; set; } = Vector3.Zero;
@@ -59,6 +59,21 @@ public class OrionWeapon : Component
 			wm.Set( EmptyBool, emptyReload );
 			wm.Set( ReloadSpeedFloat, ReloadAnimSpeed );
 			wm.Set( ReloadTrigger, true );
+		}
+	}
+
+	public void PlayAttackAnimation()
+	{
+		var vm = GetViewModelRenderer();
+		if ( vm.IsValid() )
+		{
+			vm.Set( AttackTrigger, true );
+		}
+
+		var wm = GetWorldModelRenderer();
+		if ( wm.IsValid() )
+		{
+			wm.Set( AttackTrigger, true );
 		}
 	}
 
