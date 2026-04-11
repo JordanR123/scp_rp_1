@@ -85,21 +85,20 @@
         }
 
         @* Chat Logic *@
-        @if (ChatMessages.Count > 0 || IsChatOpen)
-        {
-            <div class="chat-container @(IsChatOpen ? "open" : "")">
-                <div class="chat-log">
-                    @foreach (var msg in ChatMessages)
-                    {
-                        <div class="chat-line">@msg</div>
-                    }
-                </div>
-                @if (IsChatOpen)
+        <div class="chat-container @(IsChatOpen ? "open" : "") @(ShouldShowChatLog ? "visible" : "hidden")">
+            <div class="chat-log">
+                @foreach (var msg in ChatMessages)
                 {
-                    <OrionChatTextEntry class="chat-input" @ref="ChatInput" />
+                    <div class="chat-line">@msg</div>
                 }
             </div>
-        }
+            @if (IsChatOpen)
+            {
+                <div class="input-wrapper">
+                    <OrionChatTextEntry class="chat-input" @ref="ChatInput" />
+                </div>
+            }
+        </div>
 
 
         @if ( IsDead )
@@ -131,6 +130,10 @@
     float TimeSinceConfirmedHit => LocalPlayer.IsValid() ? LocalPlayer.TimeSinceLastConfirmedHit : 100f;
 
     OrionChatTextEntry ChatInput;
+
+
+
+
 
     float HealthFraction
     {
@@ -273,14 +276,25 @@
         OrionChatManager.OnChatMessageReceived -= OnChatMessageReceived;
     }
 
+    RealTimeSince TimeSinceLastMessage;
+    const float ChatDisplayDuration = 4.0f; // Seconds before chat fades
+
     void OnChatMessageReceived( string playerName, string message )
     {
         if ( HudState.IsValid() )
         {
             HudState.AddChatMessage( playerName, message );
+            TimeSinceLastMessage = 0; // Reset the timer [cite: 43]
             StateHasChanged();
         }
     }
+
+    // Update this property to include the timer logic
+    bool ShouldShowChatLog => IsChatOpen || TimeSinceLastMessage < ChatDisplayDuration;
+
+
+
+
 
     private void RespawnLocalPlayer()
     {
