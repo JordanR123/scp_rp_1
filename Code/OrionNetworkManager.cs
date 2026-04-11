@@ -8,16 +8,8 @@ public sealed class OrionNetworkManager : Component, Component.INetworkListener
 
 	protected override void OnStart()
 	{
-		// Only create a lobby if we're not already in one
-		if ( Networking.IsActive )
-			return;
-
-		Networking.CreateLobby( new LobbyConfig
-		{
-			MaxPlayers = 16,
-			Privacy = LobbyPrivacy.Public,
-			Name = "Orion Networks SCP RP"
-		} );
+		// Do NOT create a lobby automatically.
+		// This ensures only dedicated servers can host the game.
 	}
 
 	public void OnActive( Connection connection )
