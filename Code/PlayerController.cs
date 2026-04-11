@@ -50,6 +50,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 	public TimeSince TimeSinceLastDamage { get; set; } = 100f;
 	public TimeSince TimeSinceLastConfirmedHit { get; set; } = 100f;
 	[Property, Group( "Weapon" )] public SoundEvent HitSound { get; set; }
+	[Property, Group( "Weapon" )] public GameObject DroppedWeaponPickupPrefab { get; set; }
 	[Property, Group( "Visuals" )] public SkinnedModelRenderer BodyRenderer { get; set; }
 
 	[Sync] public bool IsInvincible { get; set; }
@@ -133,6 +134,28 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		{
 			AmmoInMagazine = gun.MagazineSize;
 		}
+	}
+
+	public void ReceiveDroppedGun( int ammoInMag )
+	{
+		HasGun = true;
+
+		var gun = GetGunWeapon();
+		if ( gun.IsValid() )
+		{
+			AmmoInMagazine = ammoInMag.Clamp( 0, gun.MagazineSize );
+		}
+		else
+		{
+			AmmoInMagazine = ammoInMag;
+		}
+
+		IsReloading = false;
+		EquipWeapon( 1 );
+		UpdateWeaponVisibility();
+		UpdateThirdPersonBodyPose();
+
+		Log.Info( $"[LOADOUT] {GameObject.Name} received dropped gun. Ammo={AmmoInMagazine}" );
 	}
 
 	private void StartReloadHost( int slotIndex )
@@ -978,7 +1001,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			case PlayerRole.DClass:
 				HasGun = true;
 				FillMagazineFromWeapon();
-				EquipWeapon( 1 ); // Give gun for testing
+				EquipWeapon( 0 ); // Give gun for testing
 				break;
 			case PlayerRole.Researcher:
 			default:
@@ -1530,6 +1553,31 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 
 	public void Die()
 	{
+
+		if ( Networking.IsHost && HasGun && Inventory.Count > 1 && Inventory[1].IsValid() && DroppedWeaponPickupPrefab.IsValid() )
+		{
+			var gun = Inventory[1];
+
+			var pickup = DroppedWeaponPickupPrefab.Clone( Transform.World );
+			pickup.WorldPosition = GameObject.WorldPosition + Vector3.Up * 10f;
+			pickup.WorldRotation = GameObject.WorldRotation;
+			pickup.NetworkSpawn();
+
+			var pickupComp = pickup.Components.Get<OrionDroppedWeaponPickup>( FindMode.EverythingInSelfAndChildren );
+			if ( pickupComp.IsValid() )
+			{
+				pickupComp.SlotIndex = 1;
+				pickupComp.AmmoInMagazine = AmmoInMagazine;
+				pickupComp.WeaponName = gun.WeaponName;
+			}
+
+			Log.Info( $"[DROP] Spawned dropped weapon pickup for {GameObject.Name}" );
+		}
+
+		HasGun = false;
+		AmmoInMagazine = 0;
+		CurrentSlot = 0;
+
 		Log.Info(
 			$"[DIE ENTER] Player={GameObject.Name} | Health={Health} | IsDead={IsDead} | OwnerId={GameObject.Network.OwnerId}"
 		);
@@ -1687,7 +1735,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			.IgnoreGameObjectHierarchy( GameObject )
 			.Run();
 
-		if ( !tr.Hit )
+		if ( !tr.Hit || !tr.GameObject.IsValid() )
 			return;
 
 		Log.Info( $"[INTERACT] Hit: {tr.GameObject.Name}" );
@@ -1695,7 +1743,31 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		if ( tr.GameObject.Components.Get<OrionDoor>( FindMode.EverythingInSelfAndAncestors ) is { } door )
 		{
 			door.OnUse();
+			return;
 		}
+
+		if ( tr.GameObject.Components.Get<OrionDroppedWeaponPickup>( FindMode.EverythingInSelfAndAncestors ) is { } pickup )
+		{
+			RequestPickupWeaponOnHost( pickup.GameObject );
+			return;
+		}
+	}
+
+	[Rpc.Host]
+	private void RequestPickupWeaponOnHost( GameObject pickupObject )
+	{
+		if ( !pickupObject.IsValid() )
+			return;
+
+		var pickup = pickupObject.Components.Get<OrionDroppedWeaponPickup>( FindMode.EverythingInSelfAndAncestors );
+		if ( !pickup.IsValid() )
+			return;
+
+		float distance = Vector3.DistanceBetween( GameObject.WorldPosition, pickupObject.WorldPosition );
+		if ( distance > 160f )
+			return;
+
+		pickup.TryPickup( this );
 	}
 
 

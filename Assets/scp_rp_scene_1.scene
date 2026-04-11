@@ -2581,6 +2581,34 @@
           "Children": []
         }
       ]
+    },
+    {
+      "__guid": "7725fc7e-c069-4677-a6f0-c28078fad6d4",
+      "__version": 2,
+      "__Prefab": "weapons/droppedweaponpickupprefab.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "10120b84-aae6-47b7-b34b-3d224562ac91"
+            },
+            "Property": "Position",
+            "Value": "-173.6776,415.0724,0.1214778"
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "10120b84-aae6-47b7-b34b-3d224562ac91": "7725fc7e-c069-4677-a6f0-c28078fad6d4",
+        "7ab81615-cd38-4617-ba4b-b94a851ae551": "c3143e6b-df29-450d-ba7d-3acde4760618",
+        "fb6246f9-6f32-43f8-b67d-1ef028afc4c4": "bba1c9fc-96ee-427b-9cb1-92a1dd96673c",
+        "bf482dd4-3349-4f4d-9f9f-3a065c45522f": "5e96fd2b-d9ab-4178-a62f-850c8252da3c",
+        "386e438b-0ac5-47f4-bd8c-be0fa336e57e": "4ea34905-7fff-4971-874b-f013b47a835e",
+        "73c73779-4061-43f4-9cf8-455e9cc23c92": "f7d64d79-3167-4ef8-9fe7-79b7303decf3"
+      }
     }
   ],
   "SceneProperties": {
@@ -2604,7 +2632,7 @@
     "GameObjectSystems": {
       "Sandbox.Clutter.ClutterGridSystem": {
         "Storage": {
-          "$blob": "4b860de3-42e3-49cd-9d13-ef9a3296eda0"
+          "$blob": "76949152-378a-4af6-bd33-a5621d0940b2"
         }
       },
       "Sandbox.MovieMaker.MovieRecorderSystem": {

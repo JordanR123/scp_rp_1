@@ -214,6 +214,10 @@
         "CrouchingEyeHeight": 42,
         "CurrentRole": "DClass",
         "DClassClothing": "clothing/dclass_jumpsuit.clothing",
+        "DroppedWeaponPickupPrefab": {
+          "_type": "gameobject",
+          "prefab": "weapons/droppedweaponpickupprefab.prefab"
+        },
         "Experience": 0,
         "EyeAnchor": {
           "_type": "gameobject",
@@ -631,6 +635,7 @@
                 "Flags": 0,
                 "AttackTrigger": "b_attack",
                 "Damage": 10,
+                "EmptyBool": "b_empty",
                 "ImpactDecalPrefab": {
                   "_type": "gameobject",
                   "prefab": "decals/fistpunch_prefab.prefab"
@@ -643,6 +648,9 @@
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
                 "Range": 150,
+                "ReloadAnimSpeed": 1,
+                "ReloadSpeedFloat": "speed_reload",
+                "ReloadTrigger": "b_reload",
                 "ShootSound": "sounds/punch sound.sound",
                 "ViewModel": {
                   "_type": "gameobject",
@@ -713,6 +721,7 @@
                 "Flags": 0,
                 "AttackTrigger": "b_attack",
                 "Damage": 10,
+                "EmptyBool": "b_empty",
                 "ImpactDecalPrefab": {
                   "_type": "gameobject",
                   "prefab": "decals/bullethole_prefab.prefab"
@@ -725,6 +734,9 @@
                 "OnComponentStart": null,
                 "OnComponentUpdate": null,
                 "Range": 4000,
+                "ReloadAnimSpeed": 1,
+                "ReloadSpeedFloat": "speed_reload",
+                "ReloadTrigger": "b_reload",
                 "ShootSound": "sounds/gunshot.sound",
                 "ViewModel": {
                   "_type": "gameobject",
