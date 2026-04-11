@@ -1643,8 +1643,12 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 		Health = newHealth;
 		IsDead = newIsDead;
 
-		UpdateWeaponVisibility();
-		UpdateThirdPersonBodyPose();
+		// Only update visuals if death state changed
+		if ( newIsDead )
+		{
+			UpdateWeaponVisibility();
+			UpdateThirdPersonBodyPose();
+		}
 
 		Log.Info( $"[SYNC] {GameObject.Name} Health: {Health}, Dead: {IsDead}" );
 	}

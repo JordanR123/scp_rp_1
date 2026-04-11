@@ -369,3 +369,38 @@
         }
     }
 }
+
+
+.chat-box {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    width: 520px;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.72);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chat-log {
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-line {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    text-shadow: 0px 1px 2px rgba(0,0,0,0.9);
+}
+
+.chat-input {
+    margin-top: 6px;
+    padding: 8px 10px;
+    background-color: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: white;
+}
