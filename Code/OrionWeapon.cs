@@ -27,6 +27,7 @@ public class OrionWeapon : Component
 	[Property, Group( "Ammo" )] public int MagazineSize { get; set; } = 30;
 
 	[Property, Group( "Audio" )] public SoundEvent ShootSound { get; set; }
+	[Property, Group( "Audio" )] public SoundEvent ReloadSound { get; set; }
 
 	[Property] public GameObject ImpactDecalPrefab { get; set; }
 
@@ -65,6 +66,14 @@ public class OrionWeapon : Component
 		}
 	}
 
+
+	public void PlayReloadSound()
+	{
+		if ( ReloadSound == null )
+			return;
+
+		Sound.Play( ReloadSound, WorldModel?.WorldPosition ?? GameObject.WorldPosition );
+	}
 
 	public void SpawnMuzzleFlash()
 	{

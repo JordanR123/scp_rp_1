@@ -253,6 +253,7 @@ public partial class OrionPlayerController : Component, Component.IDamageable
 			return;
 
 		weapon.PlayReloadAnimation( emptyReload );
+		weapon.PlayReloadSound();
 
 		if ( slotIndex == 1 && HasGun && !IsDead )
 		{
